@@ -1,0 +1,36 @@
+# Ignore generated nanopb C files
+*.pb.c
+*.pb.h
+*.proto
+# Ignore build artifacts
+/build/
+*.o
+*.obj
+*.elf
+*.bin
+*.map
+*.a
+*.d
+*.out
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore editor/project files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Ignore buf build cache
+.bufbuild/
+buf.gen.yaml
+
+# Ignore logs
+*.log
+
+# Ignore test output
+/test-output/

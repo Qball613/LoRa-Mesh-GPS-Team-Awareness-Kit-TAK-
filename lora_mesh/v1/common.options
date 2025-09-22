@@ -1,0 +1,18 @@
+# nanopb options for common.proto - ESP32 optimizations
+
+# Node identification limits (corrected field names with full package path)
+lora_mesh.v1.NodeInfo.node_id max_size:16
+lora_mesh.v1.NeighborInfo.neighbor_id max_size:16
+
+# Bluetooth connection strings
+lora_mesh.v1.BluetoothConnectionRequest.device_name max_size:32
+lora_mesh.v1.BluetoothConnectionRequest.device_address max_size:18
+lora_mesh.v1.BluetoothConnectionRequest.requested_service max_size:32
+lora_mesh.v1.BluetoothConnectionResponse.reason max_size:64
+lora_mesh.v1.BluetoothConfigCommand.parameter max_size:32
+lora_mesh.v1.BluetoothConfigCommand.value max_size:128
+lora_mesh.v1.BluetoothConfigResponse.message max_size:128
+lora_mesh.v1.BluetoothDataMessage.payload max_size:512
+
+# Array limits
+lora_mesh.v1.BluetoothConnectionResponse.supported_services max_count:8

@@ -1,0 +1,30 @@
+# nanopb options for messages.proto - ESP32 optimizations
+# Core messaging structure limits
+
+# Message ID and node IDs  
+*.message_id max_size:32
+*.source_id max_size:16
+*.destination_id max_size:16
+*.target_node max_size:16
+
+# Text message limits
+lora_mesh.v1.TextMessagePayload.text max_size:256
+lora_mesh.v1.TextMessagePayload.sender_callsign max_size:16
+
+# Control and discovery limits
+lora_mesh.v1.ControlMessagePayload.command_data max_size:128
+lora_mesh.v1.NetworkDiscoveryPayload.discovered_nodes max_count:16
+
+# Hello message limits
+lora_mesh.v1.HelloPayload.known_neighbors max_count:16
+
+# Emergency message limits
+lora_mesh.v1.EmergencyPayload.description max_size:128
+lora_mesh.v1.EmergencyPayload.contact_info max_size:64
+
+# Acknowledgment data
+lora_mesh.v1.AckPayload.additional_data max_size:64
+lora_mesh.v1.AckPayload.error_message max_size:128
+
+# Signature and security
+lora_mesh.v1.LoRaMessage.signature max_size:64
