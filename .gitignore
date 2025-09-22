@@ -1,0 +1,7 @@
+# Ignore the LoRa mesh routing pseudocode file
+lora_mesh_routing_pseudocode.md
+
+# Ignore the entire lora_mesh folder
+lora_mesh/
+
+
