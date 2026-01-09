@@ -1,0 +1,287 @@
+syntax = "proto3";
+
+package lora_mesh.v1;
+
+// Common data types used across multiple message types
+
+// GPS coordinate with timestamp
+message GPSCoordinate {
+  double latitude = 1;           // Latitude in decimal degrees
+  double longitude = 2;          // Longitude in decimal degrees
+  float altitude = 3;            // Altitude in meters (optional)
+  uint64 timestamp = 4;          // Unix timestamp in milliseconds
+  float accuracy = 5;            // GPS accuracy in meters
+  float speed = 6;               // Speed in m/s (optional)
+  float bearing = 7;             // Bearing in degrees (optional)
+}
+
+// Node identification and basic info
+message NodeInfo {
+  string node_id = 1;            // Unique node identifier
+  GPSCoordinate position = 2;    // Current GPS position
+  uint32 battery_level = 3;      // Battery level 0-100
+  int32 rssi = 4;                // Signal strength (dBm)
+  uint32 sequence_number = 5;    // Node's sequence number
+  uint64 last_seen = 6;          // Last communication timestamp
+}
+
+// Link quality metrics
+message LinkQuality {
+  float signal_strength = 1;     // Normalized RSSI (0.0-1.0)
+  float packet_loss_rate = 2;    // Packet loss rate (0.0-1.0)
+  float latency_ms = 3;          // Average latency in milliseconds
+  float stability = 4;           // Link stability metric (0.0-1.0)
+  float energy_cost = 5;         // Energy cost factor (0.0-1.0)
+}
+
+// Route quality metrics
+message RouteQualityMetrics {
+  float average_rssi = 1;        // Mean signal strength
+  float packet_loss_rate = 2;    // Percentage of lost packets
+  float latency_estimate = 3;    // Expected delivery time
+  float energy_cost = 4;         // Battery consumption estimate
+  float stability_factor = 5;    // Route reliability metric
+}
+
+// Alternate route information
+message AlternateRoute {
+  string next_hop_id = 1;        // Next hop for this alternate path
+  uint32 hop_count = 2;          // Path length in hops
+  float quality_score = 3;       // Overall path quality rating
+  uint64 last_used = 4;          // Last time this path was used
+}
+
+// Neighbor information for link state advertisements
+message NeighborInfo {
+  string neighbor_id = 1;        // Neighbor node identifier
+  LinkQuality link_quality = 2;  // Link quality metrics
+  int32 rssi = 3;                // Signal strength to neighbor
+  float distance_meters = 4;     // Physical distance if known
+}
+
+// Velocity vector for mobility prediction
+message Velocity {
+  float speed = 1;               // Speed in m/s
+  float bearing = 2;             // Direction in degrees (0-360)
+  float acceleration = 3;        // Acceleration in m/s² (optional)
+}
+
+// Network topology metrics
+message TopologyMetrics {
+  float network_density = 1;     // Network density metric
+  float average_path_length = 2; // Average path length
+  float clustering_coefficient = 3; // Clustering coefficient
+  uint32 network_diameter = 4;   // Maximum hop distance
+  uint32 total_nodes = 5;        // Total nodes in network
+  uint32 total_links = 6;        // Total links in network
+}
+
+
+// Bluetooth protocol messages for radio configuration and communication
+
+// Bluetooth connection request/response
+message BluetoothConnectionRequest {
+  string device_name = 1;                // Name of connecting device
+  string device_address = 2;             // Bluetooth MAC address
+  BluetoothConnectionType connection_type = 3; // CONFIG or COMMUNICATION
+  string requested_service = 4;          // Service being requested (optional)
+}
+
+message BluetoothConnectionResponse {
+  bool accepted = 1;                     // Whether connection is accepted
+  string reason = 2;                     // Reason if rejected
+  string assigned_session_id = 3;        // Session ID for communication
+  repeated string supported_services = 4; // List of supported services
+}
+
+// Bluetooth configuration command
+message BluetoothConfigCommand {
+  BluetoothConfigType config_type = 1;   // Type of configuration
+  string parameter = 2;                  // Parameter name
+  string value = 3;                      // Parameter value
+}
+
+// Bluetooth configuration response
+message BluetoothConfigResponse {
+  bool success = 1;                      // Whether config succeeded
+  string message = 2;                    // Optional message or error
+}
+
+// Bluetooth data message for radio communication
+message BluetoothDataMessage {
+  string session_id = 1;                 // Session identifier
+  bytes payload = 2;                     // Data payload
+  BluetoothDataType data_type = 3;       // Type of data (RAW, PROTOBUF, etc.)
+  uint64 timestamp = 4;                  // Timestamp of message
+}
+
+// Bluetooth connection types
+enum BluetoothConnectionType {
+  BLUETOOTH_CONNECTION_TYPE_UNSPECIFIED = 0;    // Configuration session
+  BLUETOOTH_CONNECTION_TYPE_CONFIG = 1;         // Configuration session
+  BLUETOOTH_CONNECTION_TYPE_COMMUNICATION = 2;  // Data/communication session
+}
+
+// Bluetooth configuration command types
+enum BluetoothConfigType {
+  BLUETOOTH_CONFIG_TYPE_UNSPECIFIED = 0;        // Unspecified configuration
+  BLUETOOTH_CONFIG_TYPE_SET_PARAMETER = 1;      // Set a configuration parameter
+  BLUETOOTH_CONFIG_TYPE_GET_PARAMETER = 2;      // Get a configuration parameter
+  BLUETOOTH_CONFIG_TYPE_RESET = 3;              // Reset radio or settings
+  BLUETOOTH_CONFIG_TYPE_SAVE = 4;               // Save configuration
+  BLUETOOTH_CONFIG_TYPE_LOAD = 5;               // Load configuration
+  BLUETOOTH_CONFIG_TYPE_FIRMWARE_UPDATE = 6;    // Initiate firmware update
+}
+
+// Bluetooth data types
+enum BluetoothDataType {
+  BLUETOOTH_DATA_TYPE_UNSPECIFIED = 0;    // Unspecified data type
+  BLUETOOTH_DATA_TYPE_RAW = 1;            // Raw binary data
+  BLUETOOTH_DATA_TYPE_PROTOBUF = 2;       // Encoded protobuf message
+  BLUETOOTH_DATA_TYPE_TEXT = 3;           // UTF-8 text
+  BLUETOOTH_DATA_TYPE_FILE = 4;           // File transfer
+}
+
+// Message priority levels
+enum MessagePriority {
+  MESSAGE_PRIORITY_UNSPECIFIED = 0;
+  MESSAGE_PRIORITY_BEST_EFFORT = 1;
+  MESSAGE_PRIORITY_LOW = 2;
+  MESSAGE_PRIORITY_NORMAL = 3;
+  MESSAGE_PRIORITY_HIGH = 4;
+  MESSAGE_PRIORITY_CRITICAL = 5;
+}
+
+// Routing strategy types
+enum RoutingStrategy {
+  ROUTING_STRATEGY_UNSPECIFIED = 0;
+  ROUTING_STRATEGY_TOPOLOGY_BASED = 1;
+  ROUTING_STRATEGY_GEOGRAPHIC_BASED = 2;
+  ROUTING_STRATEGY_HYBRID_ROUTING = 3;
+  ROUTING_STRATEGY_MULTICAST_ROUTING = 4;
+  ROUTING_STRATEGY_EMERGENCY_FLOODING = 5;
+}
+
+// Geographic routing modes
+enum GeographicRoutingMode {
+  GEOGRAPHIC_ROUTING_MODE_UNSPECIFIED = 0;
+  GEOGRAPHIC_ROUTING_MODE_GREEDY_FORWARDING = 1;
+  GEOGRAPHIC_ROUTING_MODE_PERIMETER_ROUTING = 2;
+  GEOGRAPHIC_ROUTING_MODE_PREDICTIVE_ROUTING = 3;
+  GEOGRAPHIC_ROUTING_MODE_GEOGRAPHIC_BROADCAST = 4;
+}
+
+// Route flags for status indication
+enum RouteFlags {
+  ROUTE_FLAGS_UNSPECIFIED = 0;
+  ROUTE_FLAGS_ROUTE_VALID = 1;
+  ROUTE_FLAGS_ROUTE_INVALID = 2;
+  ROUTE_FLAGS_ROUTE_REPAIRABLE = 3;
+  ROUTE_FLAGS_REVERSE_ROUTE = 4;
+  ROUTE_FLAGS_FORWARD_ROUTE = 5;
+  ROUTE_FLAGS_PROACTIVE_ROUTE = 6;
+  ROUTE_FLAGS_GEOGRAPHIC_ROUTE = 7;
+}
+
+// Quality of Service priority levels
+enum QoSPriority {
+  QO_S_PRIORITY_UNSPECIFIED = 0;
+  QO_S_PRIORITY_QOS_LOW_PRIORITY = 1;
+  QO_S_PRIORITY_QOS_NORMAL_PRIORITY = 2;
+  QO_S_PRIORITY_QOS_HIGH_PRIORITY = 3;
+  QO_S_PRIORITY_QOS_CRITICAL_PRIORITY = 4;
+}
+
+// Routing protocol types
+enum RoutingProtocol {
+  ROUTING_PROTOCOL_UNSPECIFIED = 0;
+  ROUTING_PROTOCOL_AODV = 1;                   // Ad hoc On-Demand Distance Vector
+  ROUTING_PROTOCOL_OLSR = 2;                   // Optimized Link State Routing
+  ROUTING_PROTOCOL_GEOGRAPHIC = 3;             // Geographic/Position-based routing
+  ROUTING_PROTOCOL_HYBRID = 4;                 // Hybrid protocol
+  ROUTING_PROTOCOL_DSR = 5;                    // Dynamic Source Routing
+}
+
+// Reliability level requirements
+enum ReliabilityLevel {
+  RELIABILITY_LEVEL_UNSPECIFIED = 0;
+  RELIABILITY_LEVEL_RELIABILITY_LOW = 1;        // Low reliability requirements
+  RELIABILITY_LEVEL_RELIABILITY_MEDIUM = 2;     // Medium reliability
+  RELIABILITY_LEVEL_RELIABILITY_HIGH = 3;       // High reliability
+  RELIABILITY_LEVEL_RELIABILITY_CRITICAL = 4;   // Critical reliability
+}
+
+// Security levels for message authentication and encryption
+enum SecurityLevel {
+  SECURITY_LEVEL_UNSPECIFIED = 0;     // No security
+  SECURITY_LEVEL_BASIC = 1;           // Basic authentication
+  SECURITY_LEVEL_STANDARD = 2;        // Standard encryption
+  SECURITY_LEVEL_HIGH_SECURITY = 3;   // High security
+  SECURITY_LEVEL_MILITARY = 4;        // Military-grade security
+}
+
+// Cryptographic signature algorithms
+enum SignatureAlgorithm {
+  SIGNATURE_ALGORITHM_UNSPECIFIED = 0;
+  SIGNATURE_ALGORITHM_NONE = 1;                 // No signature (for debugging/testing)
+  SIGNATURE_ALGORITHM_ED25519 = 2;              // Ed25519 (32-byte keys, 64-byte signatures)
+  SIGNATURE_ALGORITHM_ECDSA_P256 = 3;           // ECDSA P-256 (good balance of security/size)
+  SIGNATURE_ALGORITHM_ECDSA_P384 = 4;           // ECDSA P-384 (higher security)
+  SIGNATURE_ALGORITHM_RSA_2048 = 5;             // RSA-2048 (larger but widely supported)
+  SIGNATURE_ALGORITHM_HMAC_SHA256 = 6;          // HMAC-SHA256 (shared key authentication)
+}
+
+// Hash algorithms for message integrity
+enum HashAlgorithm {
+  HASH_ALGORITHM_UNSPECIFIED = 0;
+  HASH_ALGORITHM_SHA256 = 1;                    // SHA-256 (32 bytes)
+  HASH_ALGORITHM_SHA3_256 = 2;                  // SHA3-256 (32 bytes)
+  HASH_ALGORITHM_BLAKE2B = 3;                   // BLAKE2b (configurable size)
+}
+
+// Public key information for signature verification
+message PublicKey {
+  SignatureAlgorithm algorithm = 1;             // Algorithm this key is for
+  bytes key_data = 2;                           // Raw public key bytes
+  string key_id = 3;                            // Short key identifier/fingerprint
+  uint64 creation_time = 4;                     // Key creation timestamp
+  uint64 expiry_time = 5;                       // Key expiry (0 = no expiry)
+  string issuer = 6;                            // Key issuer/certificate authority
+}
+
+// Digital signature structure
+message CryptographicSignature {
+  SignatureAlgorithm algorithm = 1;             // Signature algorithm used
+  bytes signature_data = 2;                     // Raw signature bytes
+  string signer_key_id = 3;                     // Key ID used for signing
+  HashAlgorithm hash_algorithm = 4;             // Hash algorithm used
+  bytes message_hash = 5;                       // Hash of signed data (for verification)
+  uint64 signature_timestamp = 6;               // When signature was created
+  uint32 signature_version = 7;                 // Signature format version
+}
+
+// Key management and trust information
+message KeyMetadata {
+  string key_id = 1;                            // Unique key identifier
+  string node_id = 2;                           // Node this key belongs to
+  SignatureAlgorithm algorithm = 3;             // Key algorithm
+  uint32 key_usage_flags = 4;                   // Usage permissions (bitfield)
+  uint64 creation_time = 5;                     // Key creation time
+  uint64 expiry_time = 6;                       // Key expiry (0 = no expiry)
+  uint32 trust_level = 7;                       // Trust level (0-100)
+  string issuer_key_id = 8;                     // Key that signed this key
+  repeated string revoked_signatures = 9;       // Revoked signature IDs
+}
+
+// Certificate for public key authentication
+message NodeCertificate {
+  string node_id = 1;                           // Node identifier
+  PublicKey public_key = 2;                     // Node's public key
+  string issuer_node_id = 3;                    // Certificate issuer
+  uint64 issued_time = 4;                       // Certificate issue time
+  uint64 expiry_time = 5;                       // Certificate expiry
+  uint32 trust_level = 6;                       // Assigned trust level
+  CryptographicSignature issuer_signature = 7;  // Issuer's signature on certificate
+  repeated string permissions = 8;              // Granted permissions
+  bytes certificate_extensions = 9;             // Additional certificate data
+}

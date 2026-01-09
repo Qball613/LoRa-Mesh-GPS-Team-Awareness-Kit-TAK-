@@ -1,0 +1,25 @@
+# nanopb options for routing.proto - ESP32 optimizations
+
+# Node ID fields  
+*.originator_id max_size:16
+*.destination_id max_size:16
+*.replying_node max_size:16
+*.failed_next_hop max_size:16
+*.reporting_node max_size:16
+*.service_id max_size:32
+
+# Array limits based on actual message fields from the proto file
+lora_mesh.v1.RouteRequestPayload.excluded_nodes max_count:8
+lora_mesh.v1.RouteReplyPayload.alternate_routes max_count:4
+lora_mesh.v1.RouteErrorPayload.unreachable_destinations max_count:8
+lora_mesh.v1.LinkStateAdvertisementPayload.neighbors max_count:16
+lora_mesh.v1.LinkStateAdvertisementPayload.services max_count:8
+lora_mesh.v1.LinkStateAdvertisementPayload.capabilities max_count:16
+lora_mesh.v1.ServiceAdvertisement.endpoints max_count:4
+lora_mesh.v1.NodeCapabilities.capabilities max_count:16
+lora_mesh.v1.NodeCapabilities.supported_messages max_count:8
+lora_mesh.v1.NodeCapabilities.supported_routing max_count:4
+
+# String size limits
+lora_mesh.v1.ServiceAdvertisement.service_name max_size:32
+lora_mesh.v1.UnreachableDestination.failure_reason max_size:64

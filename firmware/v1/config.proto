@@ -1,0 +1,327 @@
+syntax = "proto3";
+
+package lora_mesh.v1;
+
+import "v1/common.proto";
+
+// Comprehensive mesh network configuration
+message MeshNetworkConfig {
+  string network_name = 1;               // Network identifier
+  uint32 network_id = 2;                 // Numeric network ID
+  SecurityLevel security_level = 3;      // Security requirements
+  CryptoConfig crypto_config = 4;        // Cryptographic settings
+  TopologyConfig topology_config = 5;    // Network topology settings
+  RoutingConfig routing_config = 6;      // Routing protocol configuration
+  QoSConfig qos_config = 7;              // Quality of Service settings
+}
+
+// Cryptographic configuration
+message CryptoConfig {
+  EncryptionAlgorithm algorithm = 1;     // Encryption algorithm
+  uint32 key_size_bits = 2;              // Key size in bits
+  bytes network_key = 3;                 // Shared network key (encrypted)
+  KeyRotationPolicy key_rotation = 4;    // Key rotation settings
+  AuthenticationMethod auth_method = 5;  // Authentication method
+  uint32 message_sequence_window = 6;    // Replay protection window
+}
+
+// Key rotation policy
+message KeyRotationPolicy {
+  uint32 rotation_interval_hours = 1;    // Hours between key changes
+  uint32 key_lifetime_hours = 2;         // Maximum key lifetime
+  uint32 overlap_period_minutes = 3;     // Old/new key overlap time
+  bool auto_rotation_enabled = 4;        // Enable automatic rotation
+}
+
+// Topology configuration
+message TopologyConfig {
+  TopologyType topology_type = 1;        // Network topology type
+  uint32 max_hop_count = 2;              // Maximum hops in network
+  uint32 node_capacity = 3;              // Maximum nodes supported
+  float node_density_threshold = 4;      // Density threshold
+  ReliabilityLevel reliability_level = 5; // Required reliability
+  RedundancyConfig redundancy_config = 6; // Redundancy settings
+}
+
+// Redundancy configuration
+message RedundancyConfig {
+  uint32 backup_path_count = 1;          // Number of backup paths
+  float path_diversity_threshold = 2;    // Minimum path diversity
+  bool geographic_diversity = 3;         // Enable geographic diversity
+  uint32 checkpoint_interval = 4;        // Checkpoint frequency
+  BackupStrategy backup_strategy = 5;    // Backup path strategy
+}
+
+// Routing protocol configuration
+message RoutingConfig {
+  repeated RoutingProtocol enabled_protocols = 1; // Active protocols
+  ProtocolSwitchingPolicy switching_policy = 2; // Protocol switching rules
+  RouteMaintenanceConfig maintenance_config = 3; // Route maintenance
+  PerformanceConfig performance_config = 4; // Performance tuning
+}
+
+// Protocol switching policy
+message ProtocolSwitchingPolicy {
+  float load_threshold = 1;              // Load threshold for switching
+  float mobility_threshold = 2;          // Mobility threshold
+  uint32 switch_hysteresis_ms = 3;       // Switching delay to prevent flapping
+  bool adaptive_switching = 4;           // Enable adaptive switching
+  SwitchingTrigger switching_triggers = 5; // What triggers protocol changes
+}
+
+// Route maintenance configuration
+message RouteMaintenanceConfig {
+  uint32 hello_interval_ms = 1;          // Hello message interval
+  uint32 route_timeout_ms = 2;           // Route expiration timeout
+  uint32 active_route_timeout_ms = 3;    // Active route timeout
+  uint32 allowed_hello_loss = 4;         // Allowed missed hello messages
+  float link_break_threshold = 5;        // RSSI threshold for link break
+  bool preemptive_repair = 6;            // Enable preemptive route repair
+}
+
+// Performance configuration
+message PerformanceConfig {
+  uint32 route_cache_size = 1;           // Maximum cached routes
+  uint32 neighbor_cache_size = 2;        // Maximum cached neighbors
+  uint32 request_rate_limit = 3;         // Max requests per second
+  uint32 forwarding_queue_size = 4;      // Forwarding buffer size
+  PowerManagementMode power_mode = 5;    // Power management mode
+  CompressionConfig compression = 6;      // Message compression settings
+}
+
+// Compression configuration
+message CompressionConfig {
+  CompressionAlgorithm algorithm = 1;    // Compression algorithm
+  uint32 compression_threshold = 2;      // Minimum size to compress
+  CompressionLevel level = 3;            // Compression level
+  bool header_compression = 4;           // Compress message headers
+  bool adaptive_compression = 5;         // Adapt compression to conditions
+}
+
+// Quality of Service configuration
+message QoSConfig {
+  repeated ServiceClass service_classes = 1; // Defined service classes
+  PriorityScheduling scheduling = 2;     // Priority scheduling policy
+  TrafficShaping shaping = 3;            // Traffic shaping rules
+  AdmissionControl admission = 4;        // Admission control policy
+}
+
+// Service class definition
+message ServiceClass {
+  string class_name = 1;                 // Service class name
+  QoSPriority priority = 2;              // Traffic priority
+  BandwidthAllocation bandwidth = 3;     // Bandwidth allocation
+  LatencyRequirements latency = 4;       // Latency requirements
+  ReliabilityRequirements reliability = 5; // Reliability requirements
+}
+
+// Bandwidth allocation
+message BandwidthAllocation {
+  uint32 guaranteed_bps = 1;             // Guaranteed bandwidth
+  uint32 maximum_bps = 2;                // Maximum bandwidth
+  uint32 burst_size = 3;                 // Burst buffer size
+  float sharing_weight = 4;              // Weight for bandwidth sharing
+}
+
+// Latency requirements
+message LatencyRequirements {
+  uint32 maximum_latency_ms = 1;         // Maximum acceptable latency
+  uint32 target_latency_ms = 2;          // Target latency
+  uint32 jitter_tolerance_ms = 3;        // Jitter tolerance
+  bool strict_deadline = 4;              // Strict deadline enforcement
+}
+
+// Reliability requirements
+message ReliabilityRequirements {
+  float minimum_delivery_ratio = 1;      // Minimum delivery success ratio
+  uint32 maximum_retransmissions = 2;    // Maximum retransmission attempts
+  uint32 acknowledgment_timeout_ms = 3;  // ACK timeout
+  bool duplicate_detection = 4;          // Enable duplicate detection
+}
+
+// Priority scheduling
+message PriorityScheduling {
+  SchedulingAlgorithm algorithm = 1;     // Scheduling algorithm
+  repeated QueueConfig queues = 2;       // Priority queues
+  PreemptionPolicy preemption = 3;       // Preemption policy
+  FairnessPolicy fairness = 4;           // Fairness policy
+}
+
+// Queue configuration
+message QueueConfig {
+  QoSPriority priority = 1;              // Queue priority
+  uint32 queue_size = 2;                 // Maximum queue size
+  QueueDiscipline discipline = 3;        // Queue discipline
+  DropPolicy drop_policy = 4;            // Drop policy when full
+}
+
+// Traffic shaping
+message TrafficShaping {
+  repeated ShaperConfig shapers = 1;     // Traffic shapers
+  PoliceConfig policing = 2;             // Traffic policing
+  bool adaptive_shaping = 3;             // Adaptive traffic shaping
+}
+
+// Shaper configuration
+message ShaperConfig {
+  string shaper_id = 1;                  // Shaper identifier
+  uint32 rate_limit_bps = 2;             // Rate limit in bps
+  uint32 burst_size = 3;                 // Burst size
+  TokenBucketConfig token_bucket = 4;    // Token bucket parameters
+}
+
+// Token bucket configuration
+message TokenBucketConfig {
+  uint32 bucket_size = 1;                // Token bucket size
+  uint32 token_rate = 2;                 // Token generation rate
+  uint32 initial_tokens = 3;             // Initial token count
+  bool fair_queuing = 4;                 // Fair queuing enabled
+}
+
+// Policing configuration
+message PoliceConfig {
+  uint32 rate_limit_bps = 1;             // Rate limit for policing
+  PoliceAction exceed_action = 2;        // Action when rate exceeded
+  PoliceAction violate_action = 3;       // Action when violations occur
+  uint32 measurement_interval_ms = 4;    // Measurement window
+}
+
+// Admission control
+message AdmissionControl {
+  bool admission_control_enabled = 1;    // Enable admission control
+  uint32 connection_limit = 2;           // Maximum concurrent connections
+  AdmissionPolicy policy = 3;            // Admission control policy
+  ResourceReservation reservation = 4;   // Resource reservation settings
+}
+
+// Resource reservation
+message ResourceReservation {
+  uint32 reserved_bandwidth_bps = 1;     // Reserved bandwidth
+  uint32 reserved_buffer_size = 2;       // Reserved buffer space
+  float cpu_reservation_percent = 3;     // Reserved CPU percentage
+  ReservationType reservation_type = 4;   // Type of reservation
+}
+
+// Enumerations for configuration
+
+enum EncryptionAlgorithm {
+  ENCRYPTION_ALGORITHM_UNSPECIFIED = 0;  // No encryption
+  ENCRYPTION_ALGORITHM_AES_128 = 1;       // AES 128-bit
+  ENCRYPTION_ALGORITHM_AES_256 = 2;       // AES 256-bit
+  ENCRYPTION_ALGORITHM_CHACHA20 = 3;      // ChaCha20
+  ENCRYPTION_ALGORITHM_SALSA20 = 4;       // Salsa20
+}
+
+enum AuthenticationMethod {
+  AUTHENTICATION_METHOD_UNSPECIFIED = 0;     // No authentication
+  AUTHENTICATION_METHOD_PRE_SHARED_KEY = 1;  // Pre-shared key
+  AUTHENTICATION_METHOD_CERTIFICATE = 2;     // Certificate-based
+  AUTHENTICATION_METHOD_BIOMETRIC = 3;       // Biometric authentication
+}
+
+enum TopologyType {
+  TOPOLOGY_TYPE_UNSPECIFIED = 0;     // No topology specified
+  TOPOLOGY_TYPE_MESH = 1;            // Full mesh
+  TOPOLOGY_TYPE_STAR = 2;            // Star topology
+  TOPOLOGY_TYPE_TREE = 3;            // Tree topology
+  TOPOLOGY_TYPE_HYBRID_TOPOLOGY = 4; // Hybrid topology
+}
+
+enum BackupStrategy {
+  BACKUP_STRATEGY_UNSPECIFIED = 0;  // No strategy specified
+  BACKUP_STRATEGY_PROACTIVE = 1;    // Proactive backup paths
+  BACKUP_STRATEGY_REACTIVE = 2;     // Reactive backup creation
+  BACKUP_STRATEGY_HYBRID_BACKUP = 3; // Hybrid approach
+}
+
+enum SwitchingTrigger {
+  SWITCHING_TRIGGER_UNSPECIFIED = 0;    // No trigger specified
+  SWITCHING_TRIGGER_LOAD_BASED = 1;     // Load-triggered switching
+  SWITCHING_TRIGGER_MOBILITY_BASED = 2; // Mobility-triggered switching
+  SWITCHING_TRIGGER_QOS_BASED = 3;      // QoS-triggered switching
+  SWITCHING_TRIGGER_MANUAL = 4;         // Manual switching
+}
+
+enum PowerManagementMode {
+  POWER_MANAGEMENT_MODE_UNSPECIFIED = 0;    // No mode specified
+  POWER_MANAGEMENT_MODE_ALWAYS_ON = 1;      // Always powered
+  POWER_MANAGEMENT_MODE_DUTY_CYCLE = 2;     // Duty cycling
+  POWER_MANAGEMENT_MODE_ADAPTIVE_POWER = 3; // Adaptive power management
+  POWER_MANAGEMENT_MODE_ULTRA_LOW_POWER = 4; // Ultra-low power mode
+}
+
+enum CompressionAlgorithm {
+  COMPRESSION_ALGORITHM_UNSPECIFIED = 0;  // No compression
+  COMPRESSION_ALGORITHM_LZ4 = 1;          // LZ4 compression
+  COMPRESSION_ALGORITHM_ZLIB = 2;         // Zlib compression
+  COMPRESSION_ALGORITHM_BROTLI = 3;       // Brotli compression
+}
+
+enum CompressionLevel {
+  COMPRESSION_LEVEL_UNSPECIFIED = 0;    // No compression level specified
+  COMPRESSION_LEVEL_LOW_COMPRESSION = 1;     // Low compression
+  COMPRESSION_LEVEL_MEDIUM_COMPRESSION = 2;  // Medium compression
+  COMPRESSION_LEVEL_HIGH_COMPRESSION = 3;    // High compression
+  COMPRESSION_LEVEL_MAX_COMPRESSION = 4;     // Maximum compression
+}
+
+enum SchedulingAlgorithm {
+  SCHEDULING_ALGORITHM_UNSPECIFIED = 0;        // No algorithm specified
+  SCHEDULING_ALGORITHM_STRICT_PRIORITY = 1;    // Strict priority scheduling
+  SCHEDULING_ALGORITHM_WEIGHTED_FAIR_QUEUE = 2; // Weighted fair queuing
+  SCHEDULING_ALGORITHM_DEFICIT_ROUND_ROBIN = 3; // Deficit round robin
+  SCHEDULING_ALGORITHM_CLASS_BASED_QUEUE = 4;   // Class-based queuing
+}
+
+enum QueueDiscipline {
+  QUEUE_DISCIPLINE_UNSPECIFIED = 0;      // No discipline specified
+  QUEUE_DISCIPLINE_FIFO = 1;             // First in, first out
+  QUEUE_DISCIPLINE_LIFO = 2;             // Last in, first out
+  QUEUE_DISCIPLINE_RANDOM = 3;           // Random selection
+  QUEUE_DISCIPLINE_PRIORITY_QUEUE = 4;   // Priority-based
+}
+
+enum DropPolicy {
+  DROP_POLICY_UNSPECIFIED = 0;     // No policy specified
+  DROP_POLICY_TAIL_DROP = 1;       // Drop from tail
+  DROP_POLICY_HEAD_DROP = 2;       // Drop from head
+  DROP_POLICY_RANDOM_DROP = 3;     // Random drop
+  DROP_POLICY_PRIORITY_DROP = 4;   // Priority-based drop
+}
+
+enum PreemptionPolicy {
+  PREEMPTION_POLICY_UNSPECIFIED = 0;      // No preemption specified
+  PREEMPTION_POLICY_NO_PREEMPTION = 1;    // No preemption
+  PREEMPTION_POLICY_PRIORITY_PREEMPTION = 2; // Priority-based preemption
+  PREEMPTION_POLICY_DEADLINE_PREEMPTION = 3; // Deadline-based preemption
+}
+
+enum FairnessPolicy {
+  FAIRNESS_POLICY_UNSPECIFIED = 0;     // No fairness policy specified
+  FAIRNESS_POLICY_STRICT_FAIRNESS = 1; // Strict fairness
+  FAIRNESS_POLICY_PROPORTIONAL_FAIR = 2; // Proportional fairness
+  FAIRNESS_POLICY_MAX_MIN_FAIR = 3;     // Max-min fairness
+}
+
+enum PoliceAction {
+  POLICE_ACTION_UNSPECIFIED = 0;  // No action specified
+  POLICE_ACTION_DROP = 1;         // Drop packet
+  POLICE_ACTION_MARK = 2;         // Mark packet
+  POLICE_ACTION_REMARK = 3;       // Remark packet
+  POLICE_ACTION_TRANSMIT = 4;     // Allow transmission
+}
+
+enum AdmissionPolicy {
+  ADMISSION_POLICY_UNSPECIFIED = 0;          // No policy specified
+  ADMISSION_POLICY_FIRST_COME_FIRST_SERVE = 1; // FCFS admission
+  ADMISSION_POLICY_PRIORITY_BASED_ADM = 2;    // Priority-based admission
+  ADMISSION_POLICY_RESOURCE_BASED_ADM = 3;    // Resource-based admission
+  ADMISSION_POLICY_LOTTERY_BASED = 4;         // Lottery-based admission
+}
+
+enum ReservationType {
+  RESERVATION_TYPE_UNSPECIFIED = 0;      // No reservation type specified
+  RESERVATION_TYPE_GUARANTEED = 1;       // Guaranteed reservation
+  RESERVATION_TYPE_CONTROLLED_LOAD = 2;  // Controlled load
+  RESERVATION_TYPE_RESV_BEST_EFFORT = 3; // Best effort
+}

@@ -1,0 +1,42 @@
+# PlatformIO
+.pio
+.pioenvs
+.piolibdeps
+.clang_complete
+.gcc-flags.json
+
+# Build artifacts
+*.o
+*.elf
+*.bin
+*.hex
+*.map
+
+# IDE files
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+
+# Generated files
+lib/nanopb/*.pb.h
+lib/nanopb/*.pb.c
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.cache

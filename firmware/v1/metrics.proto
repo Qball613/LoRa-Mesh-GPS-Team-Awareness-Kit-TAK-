@@ -1,0 +1,386 @@
+syntax = "proto3";
+
+package lora_mesh.v1;
+
+import "v1/common.proto";
+
+// Comprehensive network monitoring and metrics
+message NetworkMetrics {
+  NodeMetrics node_metrics = 1;          // Individual node metrics
+  LinkMetrics link_metrics = 2;          // Link quality metrics  
+  RoutingMetrics routing_metrics = 3;    // Routing performance
+  TrafficMetrics traffic_metrics = 4;    // Traffic statistics
+  PerformanceMetrics performance_metrics = 5; // System performance
+  EnergyMetrics energy_metrics = 6;      // Energy consumption
+}
+
+// Individual node performance metrics
+message NodeMetrics {
+  string node_id = 1;                    // Node identifier
+  NodeStatus status = 2;                 // Current node status
+  uint64 uptime_seconds = 3;             // Node uptime
+  uint32 neighbor_count = 4;             // Number of neighbors
+  float cpu_utilization = 5;             // CPU usage percentage
+  uint32 memory_used_bytes = 6;          // Memory usage
+  uint32 memory_total_bytes = 7;         // Total memory
+  BatteryInfo battery_info = 8;          // Battery information
+  RadioMetrics radio_metrics = 9;        // Radio performance
+  repeated ServiceStatus services = 10;   // Running services
+}
+
+// Battery information
+message BatteryInfo {
+  float voltage = 1;                     // Battery voltage
+  float current = 2;                     // Current draw
+  float charge_percentage = 3;           // Charge level 0-100%
+  uint32 estimated_life_minutes = 4;     // Estimated remaining life
+  BatteryStatus status = 5;              // Battery status
+  float temperature = 6;                 // Battery temperature
+}
+
+// Radio performance metrics
+message RadioMetrics {
+  float rssi_dbm = 1;                    // Received signal strength
+  float snr_db = 2;                      // Signal to noise ratio
+  float frequency_error_hz = 3;          // Frequency error
+  uint32 tx_power_dbm = 4;               // Transmission power
+  uint32 packets_transmitted = 5;        // Packets transmitted
+  uint32 packets_received = 6;           // Packets received
+  uint32 packets_lost = 7;               // Packets lost
+  uint32 crc_errors = 8;                 // CRC error count
+  float packet_error_rate = 9;           // Packet error rate
+  uint32 channel_utilization = 10;       // Channel busy percentage
+}
+
+// Service status information
+message ServiceStatus {
+  string service_name = 1;               // Service identifier
+  ServiceState state = 2;                // Current state
+  uint64 start_time = 3;                 // Service start time
+  uint32 restart_count = 4;              // Number of restarts
+  float cpu_usage = 5;                   // Service CPU usage
+  uint32 memory_usage = 6;               // Service memory usage
+  string last_error = 7;                 // Last error message
+}
+
+// Link quality metrics between nodes
+message LinkMetrics {
+  string source_node = 1;                // Source node ID
+  string destination_node = 2;           // Destination node ID
+  LinkQuality quality = 3;               // Link quality assessment
+  float distance_meters = 4;             // Distance between nodes
+  uint32 hop_count = 5;                  // Hops between nodes
+  LinkStatistics statistics = 6;         // Link statistics
+  LinkStability stability = 7;           // Link stability metrics
+}
+
+// Detailed link statistics
+message LinkStatistics {
+  uint32 packets_sent = 1;               // Packets sent over link
+  uint32 packets_received = 2;           // Packets received
+  uint32 packets_dropped = 3;            // Packets dropped
+  uint32 retransmissions = 4;            // Retransmission count
+  float average_delay_ms = 5;            // Average packet delay
+  float jitter_ms = 6;                   // Packet jitter
+  uint64 bytes_transmitted = 7;          // Total bytes transmitted
+  uint64 bytes_received = 8;             // Total bytes received
+  float throughput_bps = 9;              // Link throughput
+}
+
+// Link stability assessment
+message LinkStability {
+  float stability_score = 1;             // Stability score 0.0-1.0
+  uint32 link_breaks = 2;                // Number of link breaks
+  uint32 reconnection_count = 3;         // Reconnection attempts
+  float average_uptime_minutes = 4;      // Average link uptime
+  float availability_percentage = 5;     // Link availability
+  LinkTrend trend = 6;                   // Link quality trend
+}
+
+// Routing protocol performance metrics
+message RoutingMetrics {
+  RoutingProtocol active_protocol = 1;   // Currently active protocol
+  RouteDiscoveryMetrics discovery = 2;   // Route discovery performance
+  RouteMaintenanceMetrics maintenance = 3; // Route maintenance
+  ConvergenceMetrics convergence = 4;    // Network convergence
+  repeated ProtocolPerformance protocol_performance = 5; // Per-protocol metrics
+}
+
+// Route discovery performance
+message RouteDiscoveryMetrics {
+  uint32 discovery_requests = 1;         // Discovery requests sent
+  uint32 discovery_replies = 2;          // Discovery replies received
+  float discovery_success_rate = 3;      // Success rate percentage
+  float average_discovery_time_ms = 4;   // Average discovery time
+  uint32 discovery_overhead = 5;         // Discovery overhead packets
+  float route_optimality = 6;            // Route optimality score
+}
+
+// Route maintenance performance
+message RouteMaintenanceMetrics {
+  uint32 route_repairs = 1;              // Route repairs attempted
+  uint32 successful_repairs = 2;         // Successful repairs
+  uint32 route_breaks = 3;               // Route break events
+  float repair_time_ms = 4;              // Average repair time
+  uint32 maintenance_overhead = 5;       // Maintenance overhead
+  float route_lifetime_minutes = 6;      // Average route lifetime
+}
+
+// Network convergence metrics  
+message ConvergenceMetrics {
+  float convergence_time_ms = 1;         // Time to converge
+  uint32 routing_updates = 2;            // Routing table updates
+  float network_diameter = 3;            // Network diameter (hops)
+  uint32 partitions = 4;                 // Network partitions detected
+  float global_connectivity = 5;         // Global connectivity ratio
+}
+
+// Per-protocol performance metrics
+message ProtocolPerformance {
+  RoutingProtocol protocol = 1;          // Protocol type
+  float efficiency_score = 2;            // Efficiency score 0.0-1.0
+  uint32 control_overhead = 3;           // Control message overhead
+  float scalability_factor = 4;          // Scalability assessment
+  uint32 memory_usage = 5;               // Protocol memory usage
+  float cpu_usage = 6;                   // Protocol CPU usage
+}
+
+// Traffic flow metrics
+message TrafficMetrics {
+  TrafficFlow total_flow = 1;            // Total network traffic
+  repeated TrafficFlow per_node_flow = 2; // Per-node traffic
+  repeated TrafficClassMetrics qos_metrics = 3; // QoS class metrics
+  CongestionMetrics congestion = 4;      // Congestion information
+  LoadBalancing load_balancing = 5;      // Load balancing metrics
+}
+
+// Traffic flow information
+message TrafficFlow {
+  string flow_id = 1;                    // Flow identifier
+  string source_node = 2;                // Source node
+  string destination_node = 3;           // Destination node
+  uint64 bytes_per_second = 4;           // Current throughput
+  uint64 packets_per_second = 5;         // Packet rate
+  float average_packet_size = 6;         // Average packet size
+  QoSPriority priority = 7;              // Traffic priority
+  FlowState state = 8;                   // Flow state
+}
+
+// QoS class traffic metrics
+message TrafficClassMetrics {
+  QoSPriority priority_class = 1;        // Priority class
+  uint64 total_bytes = 2;                // Total bytes for class
+  uint64 total_packets = 3;              // Total packets for class
+  uint32 dropped_packets = 4;            // Dropped packets
+  float average_latency_ms = 5;          // Average latency
+  float jitter_ms = 6;                   // Jitter for class
+  float delivery_ratio = 7;              // Delivery success ratio
+}
+
+// Network congestion metrics
+message CongestionMetrics {
+  float congestion_level = 1;            // Congestion level 0.0-1.0
+  repeated CongestionPoint hotspots = 2; // Congestion hotspots
+  uint32 queue_overflow_events = 3;      // Queue overflow count
+  float average_queue_depth = 4;         // Average queue depth
+  uint32 backpressure_events = 5;        // Backpressure events
+}
+
+// Congestion hotspot information
+message CongestionPoint {
+  string node_id = 1;                    // Congested node
+  float congestion_severity = 2;         // Severity 0.0-1.0
+  uint32 queue_depth = 3;                // Current queue depth
+  float drop_rate = 4;                   // Packet drop rate
+  repeated string affected_flows = 5;     // Affected traffic flows
+}
+
+// Load balancing metrics
+message LoadBalancing {
+  float load_distribution_score = 1;     // Load distribution quality
+  float max_node_utilization = 2;        // Maximum node utilization
+  float min_node_utilization = 3;        // Minimum node utilization
+  float utilization_variance = 4;        // Utilization variance
+  uint32 load_balancing_events = 5;      // Load balancing actions
+}
+
+// System performance metrics
+message PerformanceMetrics {
+  LatencyMetrics latency = 1;            // End-to-end latency
+  ThroughputMetrics throughput = 2;      // Network throughput
+  ReliabilityMetrics reliability = 3;    // Network reliability
+  EfficiencyMetrics efficiency = 4;      // Network efficiency
+  ScalabilityMetrics scalability = 5;    // Scalability assessment
+}
+
+// Latency performance
+message LatencyMetrics {
+  float average_latency_ms = 1;          // Average end-to-end latency
+  float median_latency_ms = 2;           // Median latency
+  float percentile_95_latency_ms = 3;    // 95th percentile latency
+  float max_latency_ms = 4;              // Maximum observed latency
+  float jitter_ms = 5;                   // Latency jitter
+  LatencyDistribution distribution = 6;   // Latency distribution
+}
+
+// Latency distribution
+message LatencyDistribution {
+  repeated LatencyBucket buckets = 1;    // Latency histogram buckets
+  float standard_deviation = 2;          // Standard deviation
+  float skewness = 3;                    // Distribution skewness
+}
+
+// Latency histogram bucket
+message LatencyBucket {
+  float latency_threshold_ms = 1;        // Bucket threshold
+  uint32 packet_count = 2;               // Packets in bucket
+  float percentage = 3;                  // Percentage of total
+}
+
+// Throughput metrics
+message ThroughputMetrics {
+  uint64 aggregate_throughput_bps = 1;   // Total network throughput
+  uint64 average_node_throughput_bps = 2; // Average per-node throughput
+  uint64 peak_throughput_bps = 3;        // Peak observed throughput
+  float throughput_efficiency = 4;       // Throughput efficiency ratio
+  ThroughputTrend trend = 5;             // Throughput trend
+}
+
+// Reliability metrics
+message ReliabilityMetrics {
+  float packet_delivery_ratio = 1;       // Overall delivery ratio
+  float end_to_end_reliability = 2;      // E2E reliability
+  uint32 total_packet_loss = 3;          // Total packets lost
+  float mean_time_between_failures = 4;  // MTBF in hours
+  float mean_time_to_repair = 5;         // MTTR in minutes
+  float availability_percentage = 6;     // Network availability
+}
+
+// Efficiency metrics
+message EfficiencyMetrics {
+  float protocol_efficiency = 1;         // Protocol overhead efficiency
+  float energy_efficiency = 2;           // Energy per bit transmitted
+  float spectrum_efficiency = 3;         // Bits per Hz utilization
+  float routing_efficiency = 4;          // Routing path efficiency
+  EfficiencyTrend trend = 5;             // Efficiency trend
+}
+
+// Scalability assessment
+message ScalabilityMetrics {
+  uint32 current_node_count = 1;         // Current number of nodes
+  uint32 maximum_supported_nodes = 2;    // Maximum scalable nodes
+  float scalability_factor = 3;          // Scalability assessment
+  ScalabilityBottleneck bottlenecks = 4; // Scalability bottlenecks
+  float growth_sustainability = 5;       // Growth sustainability
+}
+
+// Scalability bottlenecks
+message ScalabilityBottleneck {
+  BottleneckType type = 1;               // Type of bottleneck
+  float severity = 2;                    // Severity 0.0-1.0
+  string description = 3;                // Description of bottleneck
+  repeated string mitigation_strategies = 4; // Possible mitigations
+}
+
+// Energy consumption metrics
+message EnergyMetrics {
+  float total_power_consumption_watts = 1; // Total power consumption
+  float average_node_power_watts = 2;    // Average node power
+  EnergyBreakdown energy_breakdown = 3;  // Energy breakdown by component
+  BatteryProjection battery_projection = 4; // Battery life projection
+  EnergyEfficiency energy_efficiency = 5; // Energy efficiency metrics
+}
+
+// Energy consumption breakdown
+message EnergyBreakdown {
+  float radio_power_watts = 1;           // Radio power consumption
+  float cpu_power_watts = 2;             // CPU power consumption  
+  float memory_power_watts = 3;          // Memory power consumption
+  float sensors_power_watts = 4;         // Sensor power consumption
+  float idle_power_watts = 5;            // Idle power consumption
+}
+
+// Battery life projection
+message BatteryProjection {
+  uint32 estimated_life_hours = 1;       // Estimated battery life
+  uint32 low_battery_nodes = 2;          // Nodes with low battery
+  uint32 critical_battery_nodes = 3;     // Nodes with critical battery
+  float network_lifetime_hours = 4;      // Estimated network lifetime
+}
+
+// Energy efficiency assessment
+message EnergyEfficiency {
+  float bits_per_joule = 1;              // Energy efficiency ratio
+  float energy_per_packet = 2;           // Energy per packet
+  float transmission_efficiency = 3;     // Transmission energy efficiency
+  float processing_efficiency = 4;       // Processing energy efficiency
+}
+
+// Enumerations for metrics
+
+enum NodeStatus {
+  NODE_STATUS_UNSPECIFIED = 0;  // Status not specified
+  NODE_STATUS_ONLINE = 1;       // Node is online and operational
+  NODE_STATUS_OFFLINE = 2;      // Node is offline
+  NODE_STATUS_DEGRADED = 3;     // Node is operational but degraded
+  NODE_STATUS_MAINTENANCE = 4;  // Node is in maintenance mode
+  NODE_STATUS_ERROR = 5;        // Node has errors
+}
+
+enum BatteryStatus {
+  BATTERY_STATUS_UNSPECIFIED = 0;    // Status not specified
+  BATTERY_STATUS_CHARGING = 1;       // Battery is charging
+  BATTERY_STATUS_DISCHARGING = 2;    // Battery is discharging
+  BATTERY_STATUS_FULL = 3;           // Battery is full
+  BATTERY_STATUS_LOW_BATTERY = 4;    // Battery is low
+  BATTERY_STATUS_CRITICAL_BATTERY = 5; // Battery is critically low
+}
+
+enum ServiceState {
+  SERVICE_STATE_UNSPECIFIED = 0;  // State not specified
+  SERVICE_STATE_RUNNING = 1;      // Service is running
+  SERVICE_STATE_STOPPED = 2;      // Service is stopped
+  SERVICE_STATE_STARTING = 3;     // Service is starting
+  SERVICE_STATE_STOPPING = 4;     // Service is stopping
+  SERVICE_STATE_FAILED = 5;       // Service has failed
+}
+
+enum LinkTrend {
+  LINK_TREND_UNSPECIFIED = 0;  // Trend not specified
+  LINK_TREND_IMPROVING = 1;    // Link quality improving
+  LINK_TREND_STABLE = 2;       // Link quality stable
+  LINK_TREND_DEGRADING = 3;    // Link quality degrading
+  LINK_TREND_UNSTABLE = 4;     // Link quality unstable
+}
+
+enum FlowState {
+  FLOW_STATE_UNSPECIFIED = 0;  // State not specified
+  FLOW_STATE_ACTIVE = 1;       // Flow is active
+  FLOW_STATE_INACTIVE = 2;     // Flow is inactive
+  FLOW_STATE_CONGESTED = 3;    // Flow is congested
+  FLOW_STATE_TERMINATED = 4;   // Flow is terminated
+}
+
+enum ThroughputTrend {
+  THROUGHPUT_TREND_UNSPECIFIED = 0;  // Trend not specified
+  THROUGHPUT_TREND_INCREASING = 1;   // Throughput increasing
+  THROUGHPUT_TREND_STEADY = 2;       // Throughput steady
+  THROUGHPUT_TREND_DECREASING = 3;   // Throughput decreasing
+  THROUGHPUT_TREND_VOLATILE = 4;     // Throughput volatile
+}
+
+enum EfficiencyTrend {
+  EFFICIENCY_TREND_UNSPECIFIED = 0;        // Trend not specified
+  EFFICIENCY_TREND_IMPROVING_EFFICIENCY = 1; // Efficiency improving
+  EFFICIENCY_TREND_STABLE_EFFICIENCY = 2;   // Efficiency stable
+  EFFICIENCY_TREND_DECLINING_EFFICIENCY = 3; // Efficiency declining
+}
+
+enum BottleneckType {
+  BOTTLENECK_TYPE_UNSPECIFIED = 0;        // Type not specified
+  BOTTLENECK_TYPE_CPU_BOTTLENECK = 1;     // CPU bottleneck
+  BOTTLENECK_TYPE_MEMORY_BOTTLENECK = 2;  // Memory bottleneck
+  BOTTLENECK_TYPE_BANDWIDTH_BOTTLENECK = 3; // Bandwidth bottleneck
+  BOTTLENECK_TYPE_PROTOCOL_BOTTLENECK = 4;  // Protocol bottleneck
+  BOTTLENECK_TYPE_ENERGY_BOTTLENECK = 5;    // Energy bottleneck
+}

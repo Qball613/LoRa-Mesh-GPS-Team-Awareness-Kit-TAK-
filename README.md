@@ -117,19 +117,37 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
 
 ## 📋 Current Implementation Status
 
-### ✅ What's Actually Done
+### ✅ What's Implemented
 - **Protocol Buffer Definitions**: Complete message format definitions in `/lora_mesh/v1/`
-- **ESP32 nanopb Integration**: .options files configured for ESP32 memory constraints
-- **Message Schema**: Ready-to-use protobuf messages for routing, GPS, security, and application data
+- **ESP32 Firmware**: Working C++ implementation in `/firmware/` directory
+  - AODV routing protocol with RREQ/RREP/RERR handling
+  - HMAC-SHA256 message authentication and replay protection
+  - GPS management (hardware/static/manual modes)
+  - LoRa radio interface (SX1262 via RadioLib)
+  - Serial command-line interface for testing
+  - Multi-board support (LilyGO T3S3, T-Deck)
+- **Python Simulation**: Working network simulator in `/routing_simulation/`
 
-### 🔧 What Still Needs Implementation
-- **All the actual firmware code** (this repo has the protocol definitions and design docs)
-- **ESP32 firmware**: Hardware drivers, message handling, routing logic
-- **Network stack**: LoRa radio management, mesh networking protocols
-- **Application layer**: GPS tracking, mapping, user interfaces
-- **Testing & optimization**: Real-world deployment and performance tuning
+### 🔧 What's Next
+- **Protocol Buffer Integration**: Replace placeholder serialization with actual nanopb
+- **Field Testing**: Deploy 6-radio mesh for real-world validation
+- **TFT Display UI**: Implement roster and messaging display
+- **Python Backend**: Live visualization and monitoring
+- **Power Optimization**: Battery life improvements and sleep modes
 
-**Bottom line**: We have the message formats and protocol design, but all the actual ESP32 code still needs to be written!
+**Bottom line**: We have working firmware! Ready for hardware testing with 6 LilyGO radios.
+
+## 🚀 Getting Started with Firmware
+
+### Quick Start
+```bash
+cd firmware/
+pip install platformio
+pio run -e t3s3-gateway -t upload
+pio device monitor -b 115200
+```
+
+See [firmware/BUILD.md](firmware/BUILD.md) for detailed build instructions and [firmware/README.md](firmware/README.md) for complete documentation.
 
 ---
 

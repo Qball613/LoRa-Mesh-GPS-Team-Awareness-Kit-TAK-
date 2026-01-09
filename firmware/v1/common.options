@@ -1,0 +1,40 @@
+# nanopb options for common.proto - ESP32 optimizations
+
+# Node identification limits (corrected field names with full package path)
+lora_mesh.v1.NodeInfo.node_id max_size:16
+lora_mesh.v1.NeighborInfo.neighbor_id max_size:16
+
+# Cryptographic signature bytes
+lora_mesh.v1.CryptographicSignature.signature_data max_size:64
+lora_mesh.v1.CryptographicSignature.signer_key_id max_size:16
+lora_mesh.v1.CryptographicSignature.message_hash max_size:32
+
+# Public key bytes
+lora_mesh.v1.PublicKey.key_data max_size:64
+lora_mesh.v1.PublicKey.key_id max_size:16
+lora_mesh.v1.PublicKey.issuer max_size:16
+
+# Alternate route  
+lora_mesh.v1.AlternateRoute.next_hop_id max_size:16
+
+# Key metadata
+lora_mesh.v1.KeyMetadata.key_id max_size:16
+lora_mesh.v1.KeyMetadata.node_id max_size:16
+
+# Node certificate
+lora_mesh.v1.NodeCertificate.node_id max_size:16
+lora_mesh.v1.NodeCertificate.capabilities max_size:64
+lora_mesh.v1.NodeCertificate.issuer_id max_size:16
+
+# Bluetooth connection strings
+lora_mesh.v1.BluetoothConnectionRequest.device_name max_size:32
+lora_mesh.v1.BluetoothConnectionRequest.device_address max_size:18
+lora_mesh.v1.BluetoothConnectionRequest.requested_service max_size:32
+lora_mesh.v1.BluetoothConnectionResponse.reason max_size:64
+lora_mesh.v1.BluetoothConfigCommand.parameter max_size:32
+lora_mesh.v1.BluetoothConfigCommand.value max_size:128
+lora_mesh.v1.BluetoothConfigResponse.message max_size:128
+lora_mesh.v1.BluetoothDataMessage.payload max_size:512
+
+# Array limits
+lora_mesh.v1.BluetoothConnectionResponse.supported_services max_count:8

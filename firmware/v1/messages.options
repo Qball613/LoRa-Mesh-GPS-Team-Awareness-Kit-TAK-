@@ -1,0 +1,54 @@
+# nanopb options for messages.proto - ESP32 optimizations
+# Core messaging structure limits
+
+# Message ID and node IDs - wildcards for all messages
+*.message_id max_size:32
+*.source_id max_size:16
+*.destination_id max_size:16
+*.target_node max_size:16
+*.node_id max_size:16
+*.requesting_node_id max_size:16
+*.signer_node_id max_size:16
+*.verifier_node_id max_size:16
+*.issuer_node_id max_size:16
+*.revoking_node_id max_size:16
+*.original_message_id max_size:32
+*.message_id_to_verify max_size:32
+*.revoked_key_id max_size:16
+
+# LoRaMessage payload (variable-length serialized content)
+lora_mesh.v1.LoRaMessage.payload max_size:256
+
+# Text message limits
+lora_mesh.v1.TextMessagePayload.text max_size:256
+lora_mesh.v1.TextMessagePayload.sender_callsign max_size:16
+
+# Control and discovery limits
+lora_mesh.v1.ControlMessagePayload.command_data max_size:128
+lora_mesh.v1.NetworkDiscoveryPayload.discovered_nodes max_count:16
+
+# Hello message limits
+lora_mesh.v1.HelloPayload.known_neighbors max_count:16
+
+# Emergency message limits
+lora_mesh.v1.EmergencyPayload.description max_size:128
+lora_mesh.v1.EmergencyPayload.contact_info max_size:64
+
+# Acknowledgment data
+lora_mesh.v1.AckPayload.additional_data max_size:64
+lora_mesh.v1.AckPayload.error_message max_size:128
+
+# Key exchange
+lora_mesh.v1.KeyExchangePayload.challenge_data max_size:64
+lora_mesh.v1.KeyExchangePayload.supported_algorithms max_count:8
+
+# Certificate request/response
+lora_mesh.v1.CertificateRequestPayload.requested_permissions max_size:64
+lora_mesh.v1.CertificateResponsePayload.rejection_reason max_size:128
+
+# Key revocation
+lora_mesh.v1.KeyRevocationPayload.affected_certificates max_count:8
+
+# Signature verification
+lora_mesh.v1.SignatureVerificationRequest.message_data max_size:256
+lora_mesh.v1.SignatureVerificationResponse.verification_details max_size:128

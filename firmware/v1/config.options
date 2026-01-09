@@ -1,0 +1,26 @@
+# Nanopb options for config.proto
+# Fixed sizes for strings/bytes in configuration types
+
+# MeshNetworkConfig
+lora_mesh.v1.MeshNetworkConfig.network_name max_size:32 type:FT_STATIC
+
+# CryptoConfig
+lora_mesh.v1.CryptoConfig.network_key max_size:32 type:FT_STATIC
+
+# ServiceClass
+lora_mesh.v1.ServiceClass.class_name max_size:32 type:FT_STATIC
+
+# ShaperConfig
+lora_mesh.v1.ShaperConfig.shaper_id max_size:16 type:FT_STATIC
+
+# TrafficShaping
+lora_mesh.v1.TrafficShaping.shapers max_count:4 type:FT_STATIC
+
+# QoSConfig
+lora_mesh.v1.QoSConfig.service_classes max_count:4 type:FT_STATIC
+
+# PriorityScheduling
+lora_mesh.v1.PriorityScheduling.queues max_count:4 type:FT_STATIC
+
+# RoutingConfig
+lora_mesh.v1.RoutingConfig.enabled_protocols max_count:4 type:FT_STATIC

@@ -1,0 +1,192 @@
+syntax = "proto3";
+
+package lora_mesh.v1;
+
+import "v1/common.proto";
+import "v1/messages.proto";
+
+// AODV Route Request message
+message RouteRequestPayload {
+  uint32 rreq_id = 1;                    // Unique request ID from originator
+  string originator_id = 2;              // Node seeking the route
+  uint32 originator_sequence_number = 3; // Freshness of originator's info
+  string destination_id = 4;             // Target node
+  uint32 destination_sequence_number = 5; // Last known dest sequence (0 if unknown)
+  uint32 hop_count = 6;                  // Hops from originator
+  uint32 broadcast_id = 7;               // Prevents broadcast loops
+  uint32 source_port = 8;                // Logical source port (service/application)
+  uint32 destination_port = 9;           // Logical destination port
+  // Extensions for enhanced AODV
+  RouteRequestFlags flags = 10;           // Request flags
+  RouteMetricPreference metric_preference = 11; // Preferred route metric
+  uint32 max_hop_limit = 12;             // Maximum allowed hops
+  uint64 discovery_timeout = 13;         // How long to wait for reply
+  repeated string excluded_nodes = 14;    // Nodes to avoid in route
+  QoSRequirements qos_requirements = 15; // Quality of service needs
+}
+
+// AODV Route Reply message
+message RouteReplyPayload {
+  string destination_id = 1;             // Replying node (destination)
+  uint32 destination_sequence_number = 2; // Current sequence number
+  string originator_id = 3;              // Original requester
+  uint32 hop_count = 4;                  // Hops from destination
+  uint32 lifetime_ms = 5;                // Route validity period
+  uint32 source_port = 6;                // Logical source port (service/application)
+  uint32 destination_port = 7;           // Logical destination port
+  // Extensions for enhanced AODV
+  RouteReplyFlags flags = 8;             // Reply flags
+  RouteQualityMetrics route_metrics = 9; // Route quality information
+  repeated AlternateRoute alternate_routes = 10; // Additional route options
+  string replying_node = 11;              // Actual replying node (if intermediate)
+  uint64 reply_timestamp = 12;           // When reply was generated
+}
+
+// AODV Route Error message
+message RouteErrorPayload {
+  repeated UnreachableDestination unreachable_destinations = 1;
+  string reporting_node = 2;             // Node reporting the error
+  RouteErrorCause error_cause = 3;       // Reason for route failure
+  uint64 error_timestamp = 4;            // When error occurred
+  uint32 affected_message_count = 5;     // Messages affected by failure
+  uint32 source_port = 6;                // Logical source port (service/application)
+  uint32 destination_port = 7;           // Logical destination port
+}
+
+// Unreachable destination info
+message UnreachableDestination {
+  string destination_id = 1;             // Unreachable node
+  uint32 destination_sequence_number = 2; // Incremented sequence number
+  string failed_next_hop = 3;            // Next hop that failed
+  RouteErrorCause failure_reason = 4;    // Specific failure reason
+}
+
+// Route request flags
+enum RouteRequestFlags {
+  ROUTE_REQUEST_FLAGS_UNSPECIFIED = 0;
+  ROUTE_REQUEST_FLAGS_RREQ_JOIN_FLAG = 1;           // New node joining network
+  ROUTE_REQUEST_FLAGS_RREQ_REPAIR_FLAG = 2;         // Local route repair
+  ROUTE_REQUEST_FLAGS_RREQ_GRATUITOUS_RREP = 3;     // Request gratuitous RREP
+  ROUTE_REQUEST_FLAGS_RREQ_DESTINATION_ONLY = 4;    // Only destination can reply
+  ROUTE_REQUEST_FLAGS_RREQ_MULTIPATH = 5;           // Multipath route discovery
+  ROUTE_REQUEST_FLAGS_RREQ_QOS_AWARE = 6;           // QoS-constrained routing
+}
+
+// Route reply flags  
+enum RouteReplyFlags {
+  ROUTE_REPLY_FLAGS_UNSPECIFIED = 0;
+  ROUTE_REPLY_FLAGS_RREP_REPAIR_FLAG = 1;         // Route repair reply
+  ROUTE_REPLY_FLAGS_RREP_ACKNOWLEDGMENT = 2;      // Acknowledgment required
+  ROUTE_REPLY_FLAGS_RREP_INTERMEDIATE_REPLY = 3;  // Reply from intermediate node
+  ROUTE_REPLY_FLAGS_RREP_MULTIPATH = 4;           // Part of multipath discovery
+  ROUTE_REPLY_FLAGS_RREP_QOS_SATISFIED = 5;       // QoS requirements met
+}
+
+// Route error causes
+enum RouteErrorCause {
+  ROUTE_ERROR_CAUSE_UNSPECIFIED = 0;
+  ROUTE_ERROR_CAUSE_LINK_FAILURE = 1;             // Next hop unreachable
+  ROUTE_ERROR_CAUSE_NODE_UNREACHABLE = 2;         // Destination unreachable
+  ROUTE_ERROR_CAUSE_ROUTE_TIMEOUT = 3;            // Route expired
+  ROUTE_ERROR_CAUSE_QOS_VIOLATION = 4;            // QoS requirements not met
+  ROUTE_ERROR_CAUSE_CONGESTION = 5;               // Network congestion
+  ROUTE_ERROR_CAUSE_ENERGY_DEPLETION = 6;         // Battery too low
+  ROUTE_ERROR_CAUSE_AUTHENTICATION_FAILURE = 7;   // Security check failed
+}
+
+// Route metric preferences for multipath discovery
+enum RouteMetricPreference {
+  ROUTE_METRIC_PREFERENCE_UNSPECIFIED = 0;
+  ROUTE_METRIC_PREFERENCE_SHORTEST_HOP = 1;             // Minimize hop count
+  ROUTE_METRIC_PREFERENCE_HIGHEST_RSSI = 2;             // Best signal quality
+  ROUTE_METRIC_PREFERENCE_LOWEST_ENERGY = 3;            // Battery conservation
+  ROUTE_METRIC_PREFERENCE_MOST_STABLE = 4;              // Least mobile nodes
+  ROUTE_METRIC_PREFERENCE_BEST_QUALITY = 5;             // Overall quality
+  ROUTE_METRIC_PREFERENCE_LOWEST_LATENCY = 6;           // Minimize delay
+}
+
+// Quality of Service requirements
+message QoSRequirements {
+  float max_delay_ms = 1;        // Maximum acceptable delay
+  float min_bandwidth_kbps = 2;  // Minimum bandwidth requirement
+  float max_loss_rate = 3;       // Maximum packet loss rate
+  float min_reliability = 4;     // Minimum delivery reliability
+  uint32 max_energy_cost = 5;    // Maximum energy consumption
+  MessagePriority priority = 6;  // Message priority level
+}
+
+// Link State Advertisement message
+message LinkStateAdvertisementPayload {
+  string originator_id = 1;              // Advertising node
+  uint32 sequence_number = 2;            // LSA freshness indicator
+  repeated NeighborInfo neighbors = 3;    // Current neighbor list
+  GPSCoordinate gps_position = 4;        // Originator's location
+  
+  // Extended LSA information
+  TopologyMetrics local_metrics = 5;     // Local topology metrics
+  uint64 lsa_timestamp = 6;              // When LSA was generated
+  uint32 lsa_lifetime_ms = 7;            // How long LSA is valid
+  repeated ServiceAdvertisement services = 8; // Services offered by node
+  NodeCapabilities capabilities = 9;      // Node capabilities
+  float mobility_factor = 10;            // Node mobility indicator
+}
+
+// Service advertisement for capability discovery
+message ServiceAdvertisement {
+  string service_name = 1;       // Human-readable service name
+  ServiceType service_type = 2;  // Type of service
+  string service_id = 3;         // Unique service identifier
+  repeated string endpoints = 4;  // Service endpoints/addresses
+  ServiceQuality quality = 5;    // Service quality parameters
+  uint32 capacity = 6;           // Maximum concurrent users
+  bool requires_auth = 7;        // Authentication required
+}
+
+// Service types
+enum ServiceType {
+  SERVICE_TYPE_UNSPECIFIED = 0;
+  SERVICE_TYPE_DATA_RELAY = 1;               // Message relaying service
+  SERVICE_TYPE_GPS_POSITIONING = 2;          // GPS positioning service
+  SERVICE_TYPE_WEATHER_MONITORING = 3;       // Weather data collection
+  SERVICE_TYPE_EMERGENCY_COORDINATION = 4;   // Emergency response coordination
+  SERVICE_TYPE_FILE_TRANSFER = 5;            // File transfer service
+  SERVICE_TYPE_VOICE_RELAY = 6;              // Voice communication relay
+  SERVICE_TYPE_SENSOR_DATA = 7;              // Sensor data collection
+  SERVICE_TYPE_CUSTOM = 99;                  // Custom service type
+}
+
+// Service quality parameters
+message ServiceQuality {
+  float availability = 1;       // Service availability 0.0-1.0
+  float response_time_ms = 2;   // Average response time
+  float throughput_kbps = 3;    // Service throughput
+  uint32 concurrent_capacity = 4; // Concurrent user capacity
+  float reliability = 5;       // Service reliability 0.0-1.0
+}
+
+// Node capabilities advertisement
+message NodeCapabilities {
+  repeated NodeCapability capabilities = 1; // List of capabilities
+  uint32 max_hop_relay = 2;              // Maximum relay hop count
+  uint32 max_message_size = 3;           // Maximum message size
+  repeated MessageType supported_messages = 4; // Supported message types
+  repeated RoutingStrategy supported_routing = 5; // Supported routing
+  bool has_gps = 6;                      // GPS capability
+  bool has_internet = 7;                 // Internet connectivity
+  bool is_mobile = 8;                    // Mobility capability
+  float battery_capacity_wh = 9;         // Battery capacity in Wh
+  uint32 radio_power_dbm = 10;           // Radio transmission power
+}
+
+// Node capability types
+enum NodeCapability {
+  NODE_CAPABILITY_UNSPECIFIED = 0;
+  NODE_CAPABILITY_BASIC_ROUTING = 1;        // Basic message routing
+  NODE_CAPABILITY_GEOGRAPHIC_ROUTING = 2;   // GPS-based routing
+  NODE_CAPABILITY_EMERGENCY_GATEWAY = 3;    // Emergency communication gateway
+  NODE_CAPABILITY_INTERNET_GATEWAY = 4;     // Internet connectivity gateway
+  NODE_CAPABILITY_WEATHER_STATION = 5;      // Weather monitoring
+  NODE_CAPABILITY_REPEATER = 6;             // Signal repeater/amplifier
+  NODE_CAPABILITY_COMMAND_CENTER = 7;       // Command and control center
+  NODE_CAPABILITY_MOBILE_UNIT = 8;          // Mobile communication unit
+}

@@ -1,0 +1,200 @@
+syntax = "proto3";
+
+package lora_mesh.v1;
+
+import "v1/common.proto";
+
+// Geographic routing beacon message
+message GeographicBeaconPayload {
+  NodeInfo beacon_node = 1;             // Node sending beacon
+  repeated NeighborInfo geographic_neighbors = 2; // Neighbors with positions
+  GPSCoordinate current_position = 3;    // Current GPS position
+  Velocity current_velocity = 4;         // Current movement vector
+  
+  // Geographic routing specific information
+  GeographicRoutingMode supported_modes = 5; // Supported routing modes
+  float forwarding_radius = 6;           // Effective forwarding radius
+  uint32 position_update_interval = 7;   // GPS update frequency
+  bool is_mobile = 8;                    // Mobility indicator
+  repeated GeographicRegion coverage_areas = 9; // Areas this node covers
+}
+
+// Position update for predictive routing
+message PositionUpdatePayload {
+  string node_id = 1;                    // Node reporting position
+  GPSCoordinate position = 2;            // Current position
+  Velocity velocity = 3;                 // Current velocity
+  float position_confidence = 4;         // Position accuracy 0.0-1.0
+  uint64 update_timestamp = 5;           // When position was recorded
+  
+  // Predictive information
+  repeated PredictedPosition predictions = 6; // Future position predictions
+  MovementPattern movement_pattern = 7;   // Detected movement pattern
+  uint32 prediction_horizon_seconds = 8; // How far ahead predictions valid
+}
+
+// Predicted future position
+message PredictedPosition {
+  GPSCoordinate predicted_position = 1;  // Predicted coordinate
+  uint64 prediction_time = 2;            // When node will be at position
+  float confidence = 3;                  // Prediction confidence 0.0-1.0
+  PredictionMethod method = 4;           // Method used for prediction
+}
+
+// Movement pattern detection
+message MovementPattern {
+  MovementType pattern_type = 1;         // Type of movement detected
+  float pattern_confidence = 2;          // Confidence in pattern 0.0-1.0
+  repeated GPSCoordinate waypoints = 3;  // Key points in movement
+  uint32 pattern_period_seconds = 4;     // Period of cyclic patterns
+  float average_speed = 5;               // Average movement speed
+  string pattern_description = 6;        // Human-readable description
+}
+
+// Geographic region definition
+message GeographicRegion {
+  string region_id = 1;                  // Unique region identifier
+  GeographicShape shape = 2;             // Shape of the region
+  repeated GPSCoordinate boundary_points = 3; // Region boundary
+  float coverage_radius = 4;             // Coverage radius in meters
+  RegionPriority priority = 5;           // Region importance
+  string region_name = 6;                // Human-readable name
+}
+
+// Perimeter routing message
+message PerimeterRoutingPayload {
+  string originator_id = 1;              // Node starting perimeter routing
+  GPSCoordinate destination_position = 2; // Target position
+  GPSCoordinate void_entry_point = 3;    // Where perimeter routing started
+  PerimeterDirection direction = 4;       // Direction around perimeter
+  repeated GPSCoordinate perimeter_path = 5; // Path taken so far
+  uint32 max_perimeter_hops = 6;         // Maximum hops in perimeter mode
+  bool return_to_greedy = 7;             // Try to return to greedy forwarding
+}
+
+// Geographic multicast message
+message GeographicMulticastPayload {
+  MulticastRegion target_region = 1;     // Target geographic region
+  string originator_id = 2;              // Node initiating multicast
+  bytes multicast_payload = 3;           // Actual multicast data
+  MulticastStrategy strategy = 4;        // Multicast forwarding strategy
+  uint32 hop_limit = 5;                  // Maximum forwarding hops
+  repeated string reached_nodes = 6;      // Nodes that received message
+}
+
+// Multicast region specification
+message MulticastRegion {
+  GPSCoordinate center = 1;              // Center of multicast region
+  float radius = 2;                      // Radius in meters
+  GeographicShape shape = 3;             // Shape of region
+  repeated GPSCoordinate polygon_points = 4; // For polygon regions
+  RegionPriority priority = 5;           // Delivery priority
+}
+
+// Geographic route discovery message
+message GeographicRouteDiscoveryPayload {
+  string originator_id = 1;              // Node initiating discovery
+  GPSCoordinate destination_position = 2; // Target position (approximate)
+  float destination_radius = 3;          // Acceptable proximity to target
+  GeographicRoutingMode preferred_mode = 4; // Preferred routing mode
+  uint32 discovery_timeout = 5;          // Discovery timeout
+  repeated GeographicRouteCandidate candidates = 6; // Route candidates found
+}
+
+// Geographic route candidate
+message GeographicRouteCandidate {
+  string candidate_id = 1;               // Candidate node ID
+  GPSCoordinate candidate_position = 2;  // Candidate position
+  float distance_to_target = 3;          // Distance to target
+  float route_quality = 4;               // Quality score 0.0-1.0
+  uint32 hop_count = 5;                  // Hops to reach candidate
+  LinkQuality link_quality = 6;          // Link quality to candidate
+}
+
+// Location service message for position queries
+message LocationServicePayload {
+  LocationServiceType service_type = 1;  // Type of location service
+  string target_node_id = 2;             // Node being queried
+  string requesting_node_id = 3;         // Node making request
+  GPSCoordinate last_known_position = 4; // Last known position of target
+  uint64 last_update_time = 5;           // When position was last updated
+  LocationServiceResponse response = 6;   // Response data
+}
+
+// Location service response
+message LocationServiceResponse {
+  bool position_found = 1;               // Whether position was found
+  GPSCoordinate current_position = 2;    // Current position if known
+  float position_age_seconds = 3;        // Age of position data
+  repeated LocationServiceNode location_servers = 4; // Alternative servers
+  string error_message = 5;              // Error description if failed
+}
+
+// Location service node information
+message LocationServiceNode {
+  string node_id = 1;                    // Location server node ID
+  GPSCoordinate server_position = 2;     // Server position
+  repeated string cached_nodes = 3;       // Nodes with cached positions
+  uint32 cache_size = 4;                 // Number of cached positions
+  float coverage_radius = 5;             // Service coverage radius
+}
+
+// Enumerations for geographic routing
+
+enum MovementType {
+  MOVEMENT_TYPE_UNSPECIFIED = 0;  // Not specified
+  MOVEMENT_TYPE_STATIONARY = 1;   // Not moving
+  MOVEMENT_TYPE_LINEAR = 2;       // Moving in straight line
+  MOVEMENT_TYPE_CIRCULAR = 3;     // Moving in circle/loop
+  MOVEMENT_TYPE_RANDOM_WALK = 4;  // Random movement
+  MOVEMENT_TYPE_WAYPOINT = 5;     // Following waypoints
+  MOVEMENT_TYPE_VEHICULAR = 6;    // Vehicle-like movement
+  MOVEMENT_TYPE_PEDESTRIAN = 7;   // Walking movement
+}
+
+enum PredictionMethod {
+  PREDICTION_METHOD_UNSPECIFIED = 0;         // Method not specified
+  PREDICTION_METHOD_LINEAR_EXTRAPOLATION = 1; // Simple linear prediction
+  PREDICTION_METHOD_KALMAN_FILTER = 2;       // Kalman filter prediction
+  PREDICTION_METHOD_NEURAL_NETWORK = 3;      // AI-based prediction
+  PREDICTION_METHOD_PATTERN_MATCHING = 4;    // Pattern-based prediction
+  PREDICTION_METHOD_WEIGHTED_AVERAGE = 5;    // Moving average prediction
+}
+
+enum GeographicShape {
+  GEOGRAPHIC_SHAPE_UNSPECIFIED = 0;  // Shape not specified
+  GEOGRAPHIC_SHAPE_CIRCLE = 1;       // Circular region
+  GEOGRAPHIC_SHAPE_RECTANGLE = 2;    // Rectangular region
+  GEOGRAPHIC_SHAPE_POLYGON = 3;      // Arbitrary polygon
+  GEOGRAPHIC_SHAPE_ELLIPSE = 4;      // Elliptical region
+}
+
+enum PerimeterDirection {
+  PERIMETER_DIRECTION_UNSPECIFIED = 0;    // Direction not specified
+  PERIMETER_DIRECTION_CLOCKWISE = 1;      // Right-hand rule
+  PERIMETER_DIRECTION_COUNTER_CLOCKWISE = 2; // Left-hand rule
+}
+
+enum MulticastStrategy {
+  MULTICAST_STRATEGY_UNSPECIFIED = 0;       // Strategy not specified
+  MULTICAST_STRATEGY_GEOGRAPHIC_FLOODING = 1; // Flood within geographic region
+  MULTICAST_STRATEGY_DENSITY_AWARE = 2;     // Adapt to node density
+  MULTICAST_STRATEGY_ENERGY_EFFICIENT = 3;  // Minimize energy consumption
+  MULTICAST_STRATEGY_RELIABILITY_FIRST = 4; // Maximize delivery reliability
+}
+
+enum LocationServiceType {
+  LOCATION_SERVICE_TYPE_UNSPECIFIED = 0;      // Service type not specified
+  LOCATION_SERVICE_TYPE_POSITION_QUERY = 1;   // Query for node position
+  LOCATION_SERVICE_TYPE_POSITION_UPDATE = 2;  // Update node position
+  LOCATION_SERVICE_TYPE_CACHE_REFRESH = 3;    // Refresh cached positions
+  LOCATION_SERVICE_TYPE_SERVICE_DISCOVERY = 4; // Find location services
+}
+
+enum RegionPriority {
+  REGION_PRIORITY_UNSPECIFIED = 0;
+  REGION_PRIORITY_LOW_PRIORITY = 1;
+  REGION_PRIORITY_NORMAL_PRIORITY = 2;
+  REGION_PRIORITY_HIGH_PRIORITY = 3;
+  REGION_PRIORITY_CRITICAL_PRIORITY = 4;
+}

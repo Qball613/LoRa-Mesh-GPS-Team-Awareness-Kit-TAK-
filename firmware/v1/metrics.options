@@ -1,0 +1,40 @@
+# Nanopb options for metrics.proto
+# Fixed sizes for strings/bytes in metrics types
+
+# NodeMetrics
+lora_mesh.v1.NodeMetrics.node_id max_size:16 type:FT_STATIC
+lora_mesh.v1.NodeMetrics.services max_count:4 type:FT_STATIC
+
+# ServiceStatus
+lora_mesh.v1.ServiceStatus.service_name max_size:32 type:FT_STATIC
+lora_mesh.v1.ServiceStatus.last_error max_size:64 type:FT_STATIC
+
+# LinkMetrics
+lora_mesh.v1.LinkMetrics.source_node max_size:16 type:FT_STATIC
+lora_mesh.v1.LinkMetrics.destination_node max_size:16 type:FT_STATIC
+
+# RoutingMetrics
+lora_mesh.v1.RoutingMetrics.protocol_performance max_count:4 type:FT_STATIC
+
+# CongestionMetrics
+lora_mesh.v1.CongestionMetrics.hotspots max_count:4 type:FT_STATIC
+
+# CongestionPoint
+lora_mesh.v1.CongestionPoint.node_id max_size:16 type:FT_STATIC
+lora_mesh.v1.CongestionPoint.affected_flows max_count:8 max_size:16 type:FT_STATIC
+
+# TrafficFlow
+lora_mesh.v1.TrafficFlow.flow_id max_size:16 type:FT_STATIC
+lora_mesh.v1.TrafficFlow.source_node max_size:16 type:FT_STATIC
+lora_mesh.v1.TrafficFlow.destination_node max_size:16 type:FT_STATIC
+
+# TrafficMetrics
+lora_mesh.v1.TrafficMetrics.per_node_flow max_count:16 type:FT_STATIC
+lora_mesh.v1.TrafficMetrics.qos_metrics max_count:4 type:FT_STATIC
+
+# LatencyDistribution
+lora_mesh.v1.LatencyDistribution.buckets max_count:8 type:FT_STATIC
+
+# ScalabilityBottleneck
+lora_mesh.v1.ScalabilityBottleneck.description max_size:128 type:FT_STATIC
+lora_mesh.v1.ScalabilityBottleneck.mitigation_strategies max_count:4 max_size:64 type:FT_STATIC

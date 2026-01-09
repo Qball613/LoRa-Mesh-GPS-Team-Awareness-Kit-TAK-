@@ -1,0 +1,242 @@
+syntax = "proto3";
+
+package lora_mesh.v1;
+
+import "v1/common.proto";
+
+// Main message wrapper for all network communications
+message LoRaMessage {
+  string message_id = 1;               // Globally unique message identifier
+  string source_id = 2;                // Original sender node ID
+  string destination_id = 3;           // Final recipient node ID ("BROADCAST" for broadcasts)
+  uint32 source_port = 4;              // Logical source port (service/application)
+  uint32 destination_port = 5;         // Logical destination port
+  MessageType message_type = 6;        // Type of message
+  bytes payload = 7;                   // Serialized message content
+  uint64 timestamp = 8;                // Message creation timestamp
+  uint32 ttl = 9;                      // Time to live (hop count)
+  uint32 hop_count = 10;               // Hops from originator
+  uint32 sequence_number = 11;         // Message sequence number
+  CryptographicSignature signature = 12; // Cryptographic signature for authentication
+  MessagePriority priority = 13;       // Message priority level
+  RoutingStrategy routing_hint = 14;   // Suggested routing strategy
+  SecurityLevel security_level = 15;   // Required security level for this message
+  bool signature_required = 16;        // Whether signature verification is mandatory
+}
+
+// Message types supported by the system
+enum MessageType {
+  MESSAGE_TYPE_UNSPECIFIED = 0;
+  
+  // Basic application messages
+  MESSAGE_TYPE_GPS_UPDATE = 1;
+  MESSAGE_TYPE_TEXT_MESSAGE = 2;
+  MESSAGE_TYPE_HELLO = 3;
+  MESSAGE_TYPE_CONTROL_MESSAGE = 4;
+  MESSAGE_TYPE_ACKNOWLEDGMENT = 5;
+  MESSAGE_TYPE_EMERGENCY = 6;
+  MESSAGE_TYPE_NETWORK_DISCOVERY = 7;
+  
+  // Routing protocol messages (handled in routing.proto)
+  MESSAGE_TYPE_ROUTE_REQUEST = 10;
+  MESSAGE_TYPE_ROUTE_REPLY = 11;
+  MESSAGE_TYPE_ROUTE_ERROR = 12;
+  MESSAGE_TYPE_LINK_STATE_ADVERTISEMENT = 13;
+  
+  // Geographic routing messages (handled in geographic.proto)  
+  MESSAGE_TYPE_GEOGRAPHIC_BEACON = 20;
+  MESSAGE_TYPE_POSITION_UPDATE = 21;
+  
+  // Security and key management messages
+  MESSAGE_TYPE_KEY_EXCHANGE = 30;
+  MESSAGE_TYPE_CERTIFICATE_REQUEST = 31;
+  MESSAGE_TYPE_CERTIFICATE_RESPONSE = 32;
+  MESSAGE_TYPE_KEY_REVOCATION = 33;
+  MESSAGE_TYPE_SIGNATURE_VERIFICATION_REQUEST = 34;
+  MESSAGE_TYPE_SIGNATURE_VERIFICATION_RESPONSE = 35;
+}
+
+// GPS position update message
+message GPSUpdatePayload {
+  GPSCoordinate position = 1;          // Current GPS position
+  Velocity velocity = 2;               // Current velocity vector
+  uint32 satellites_used = 3;          // Number of satellites in fix
+  bool is_differential = 4;            // Differential GPS flag
+  uint64 timestamp = 5;                // GPS timestamp
+  float accuracy = 6;                  // Position accuracy in meters
+}
+
+// Hello message for neighbor discovery
+message HelloPayload {
+  NodeInfo node_info = 1;              // Sender's node information
+  repeated string known_neighbors = 2;  // List of known neighbor IDs
+  uint32 neighbor_count = 3;           // Direct neighbor count
+  float battery_level = 4;             // Battery level 0.0-1.0
+  uint32 uptime_seconds = 5;           // Node uptime in seconds
+  TopologyMetrics local_metrics = 6;   // Local network metrics
+  uint64 hello_timestamp = 7;          // When hello was created
+  uint32 hello_sequence = 8;           // Hello sequence number
+  uint64 mesh_version = 9;             // Mesh-wide state version for sync detection
+}
+
+// Text message payload
+message TextMessagePayload {
+  string text = 1;                     // Message text content
+  string sender_callsign = 2;          // Human-readable sender ID
+  MessagePriority priority = 3;        // Message priority
+  bool requires_ack = 4;               // Acknowledgment required
+  uint32 message_sequence = 5;         // Sequence number for this sender
+}
+
+// Control message for network management
+message ControlMessagePayload {
+  ControlCommand command = 1;          // Control command type
+  string target_node = 2;              // Target node (empty for broadcast)
+  bytes command_data = 3;              // Command-specific data
+  uint64 command_id = 4;               // Unique command identifier
+  uint64 expiry_time = 5;              // Command expiry timestamp
+}
+
+// Network discovery message
+message NetworkDiscoveryPayload {
+  NodeInfo originator = 1;             // Node initiating discovery
+  uint32 discovery_radius = 2;         // Maximum hops for discovery
+  repeated NodeInfo discovered_nodes = 3; // Nodes discovered so far
+  uint64 discovery_start_time = 4;     // When discovery started
+  bool include_routing_info = 5;       // Include routing table info
+}
+
+// Acknowledgment message payload
+message AckPayload {
+  string original_message_id = 1;      // ID of message being acknowledged
+  bool success = 2;                    // Whether operation succeeded
+  string error_message = 3;            // Error description if failed
+  uint64 ack_timestamp = 4;            // When ACK was generated
+  bytes additional_data = 5;           // Optional additional response data
+}
+
+// Emergency message for critical situations
+message EmergencyPayload {
+  EmergencyType emergency_type = 1;     // Type of emergency
+  string description = 2;              // Human-readable description
+  GPSCoordinate location = 3;          // Location of emergency
+  uint32 severity_level = 4;           // Severity 1-10
+  string contact_info = 5;             // Contact information
+  uint64 emergency_time = 6;           // When emergency occurred
+  bool requires_response = 7;          // Response required flag
+}
+
+// Control commands
+enum ControlCommand {
+  CONTROL_COMMAND_UNSPECIFIED = 0;
+  CONTROL_COMMAND_PING = 1;
+  CONTROL_COMMAND_REBOOT = 2;
+  CONTROL_COMMAND_CONFIG_UPDATE = 3;
+  CONTROL_COMMAND_ROUTE_FLUSH = 4;
+  CONTROL_COMMAND_POWER_ADJUST = 5;
+  CONTROL_COMMAND_FREQUENCY_CHANGE = 6;
+  CONTROL_COMMAND_EMERGENCY_SHUTDOWN = 7;
+}
+
+// Emergency types
+enum EmergencyType {
+  EMERGENCY_TYPE_UNSPECIFIED = 0;
+  EMERGENCY_TYPE_MEDICAL = 1;
+  EMERGENCY_TYPE_FIRE = 2;
+  EMERGENCY_TYPE_ACCIDENT = 3;
+  EMERGENCY_TYPE_NATURAL_DISASTER = 4;
+  EMERGENCY_TYPE_SECURITY_THREAT = 5;
+  EMERGENCY_TYPE_EQUIPMENT_FAILURE = 6;
+  EMERGENCY_TYPE_COMMUNICATION_FAILURE = 7;
+  EMERGENCY_TYPE_OTHER = 99;
+}
+
+// Key exchange message payload
+message KeyExchangePayload {
+  string requesting_node_id = 1;       // Node requesting key exchange
+  PublicKey offered_public_key = 2;    // Public key being offered
+  SignatureAlgorithm preferred_algorithm = 3; // Preferred signature algorithm
+  bytes challenge_data = 4;            // Challenge for proof of possession
+  CryptographicSignature proof_signature = 5; // Signature proving key ownership
+  uint32 key_exchange_version = 6;     // Key exchange protocol version
+  repeated SignatureAlgorithm supported_algorithms = 7; // Supported algorithms
+}
+
+// Certificate request payload
+message CertificateRequestPayload {
+  string requesting_node_id = 1;       // Node requesting certificate
+  PublicKey public_key_to_certify = 2; // Key that needs certification
+  string issuer_node_id = 3;           // Requested certificate issuer
+  repeated string requested_permissions = 4; // Requested permissions
+  uint32 requested_validity_days = 5;  // Requested certificate validity period
+  CryptographicSignature request_signature = 6; // Signature on the request
+}
+
+// Certificate response payload
+message CertificateResponsePayload {
+  string requesting_node_id = 1;       // Original requester
+  string issuer_node_id = 2;           // Certificate issuer
+  NodeCertificate certificate = 3;     // Issued certificate (if approved)
+  CertificateStatus status = 4;        // Request status
+  string rejection_reason = 5;         // Reason for rejection (if applicable)
+  uint64 response_timestamp = 6;       // Response creation time
+}
+
+// Certificate status enumeration
+enum CertificateStatus {
+  CERTIFICATE_STATUS_UNSPECIFIED = 0;
+  CERTIFICATE_STATUS_APPROVED = 1;     // Certificate issued successfully
+  CERTIFICATE_STATUS_REJECTED = 2;     // Certificate request rejected
+  CERTIFICATE_STATUS_PENDING = 3;      // Request under review
+  CERTIFICATE_STATUS_REVOKED = 4;      // Certificate has been revoked
+}
+
+// Key revocation payload
+message KeyRevocationPayload {
+  string revoked_key_id = 1;           // Key being revoked
+  string revoking_node_id = 2;         // Node issuing revocation
+  RevocationReason reason = 3;         // Reason for revocation
+  uint64 revocation_timestamp = 4;     // When revocation was issued
+  CryptographicSignature revocation_signature = 5; // Signature on revocation
+  repeated string affected_certificates = 6; // Certificates that are now invalid
+}
+
+// Revocation reasons
+enum RevocationReason {
+  REVOCATION_REASON_UNSPECIFIED = 0;
+  REVOCATION_REASON_KEY_COMPROMISE = 1;     // Private key was compromised
+  REVOCATION_REASON_NODE_COMPROMISE = 2;    // Node was compromised
+  REVOCATION_REASON_ADMINISTRATIVE = 3;     // Administrative revocation
+  REVOCATION_REASON_SUPERSEDED = 4;         // Key replaced with new key
+  REVOCATION_REASON_CESSATION = 5;          // Node leaving network
+}
+
+// Signature verification request payload
+message SignatureVerificationRequestPayload {
+  string message_id_to_verify = 1;     // Message ID being verified
+  string signer_node_id = 2;           // Claimed signer of the message
+  string verifier_node_id = 3;         // Node requesting verification
+  bytes message_data = 4;              // Original message data
+  CryptographicSignature signature_to_verify = 5; // Signature being verified
+}
+
+// Signature verification response payload
+message SignatureVerificationResponsePayload {
+  string original_message_id = 1;      // Message that was verified
+  string verifier_node_id = 2;         // Node that performed verification
+  VerificationResult result = 3;       // Verification result
+  string verification_details = 4;     // Additional verification information
+  uint64 verification_timestamp = 5;   // When verification was performed
+  CryptographicSignature verifier_signature = 6; // Verifier's signature on result
+}
+
+// Verification result enumeration
+enum VerificationResult {
+  VERIFICATION_RESULT_UNSPECIFIED = 0;
+  VERIFICATION_RESULT_VALID = 1;       // Signature is valid
+  VERIFICATION_RESULT_INVALID = 2;     // Signature is invalid
+  VERIFICATION_RESULT_KEY_NOT_FOUND = 3; // Signer's public key not available
+  VERIFICATION_RESULT_KEY_EXPIRED = 4; // Signer's key has expired
+  VERIFICATION_RESULT_KEY_REVOKED = 5; // Signer's key has been revoked
+  VERIFICATION_RESULT_ALGORITHM_UNSUPPORTED = 6; // Signature algorithm not supported
+}
