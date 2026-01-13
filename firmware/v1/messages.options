@@ -30,6 +30,14 @@ lora_mesh.v1.NetworkDiscoveryPayload.discovered_nodes max_count:16
 # Hello message limits
 lora_mesh.v1.HelloPayload.known_neighbors max_count:16
 
+# Content sync limits - bundled state updates
+lora_mesh.v1.SyncPosition.node_id max_size:16
+lora_mesh.v1.SyncTextMessage.message_id max_size:32
+lora_mesh.v1.SyncTextMessage.source_id max_size:16
+lora_mesh.v1.SyncTextMessage.text max_size:128
+lora_mesh.v1.ContentSyncPayload.positions max_count:10
+lora_mesh.v1.ContentSyncPayload.messages max_count:5
+
 # Emergency message limits
 lora_mesh.v1.EmergencyPayload.description max_size:128
 lora_mesh.v1.EmergencyPayload.contact_info max_size:64
@@ -50,5 +58,11 @@ lora_mesh.v1.CertificateResponsePayload.rejection_reason max_size:128
 lora_mesh.v1.KeyRevocationPayload.affected_certificates max_count:8
 
 # Signature verification
-lora_mesh.v1.SignatureVerificationRequest.message_data max_size:256
-lora_mesh.v1.SignatureVerificationResponse.verification_details max_size:128
+lora_mesh.v1.SignatureVerificationRequestPayload.message_data max_size:256
+lora_mesh.v1.SignatureVerificationResponsePayload.verification_details max_size:128
+
+# Fragmentation support - fragment data chunks
+lora_mesh.v1.FragmentPayload.data max_size:120
+
+# Voice/Codec2 support - packed audio frames
+lora_mesh.v1.VoicePayload.frames max_size:128

@@ -1,7 +1,7 @@
-/**
+﻿/**
  * @file config.h
  * @brief Global configuration and hardware abstraction for LoRa Mesh GPS TAK
- * 
+ *
  * This file provides compile-time configuration based on build flags
  * and defines hardware capabilities for different board variants.
  */
@@ -97,7 +97,7 @@
 #define NEIGHBOR_BLACKLIST_MAX_DURATION_MS 900000 // 15 minutes
 
 // AODV timings
-#define ROUTE_LIFETIME_MS           360000   // 6 minutes (match neighbor timeout)
+#define ROUTE_LIFETIME_MS           1200000  // 20 minutes (match neighbor timeout)
 #define RREQ_TIMEOUT_MS             3000     // 3 seconds
 #define RREP_TIMEOUT_MS             5000     // 5 seconds
 #define MAX_RREQ_RETRIES            3
@@ -109,7 +109,7 @@
     #define HELLO_BEACON_INTERVAL_MS 900000  // 15 minutes (fallback only, any message refreshes neighbors)
 #endif
 
-#define NEIGHBOR_TIMEOUT_MS         360000   // 3x beacon interval (6 minutes)
+#define NEIGHBOR_TIMEOUT_MS         1200000  // 20 minutes (> beacon interval, any RX refreshes)
 #define ROUTE_CLEANUP_INTERVAL_MS   10000    // Clean expired routes
 
 // Message parameters

@@ -1,4 +1,4 @@
-syntax = "proto3";
+﻿syntax = "proto3";
 
 package lora_mesh.v1;
 
@@ -27,7 +27,7 @@ message LoRaMessage {
 // Message types supported by the system
 enum MessageType {
   MESSAGE_TYPE_UNSPECIFIED = 0;
-  
+
   // Basic application messages
   MESSAGE_TYPE_GPS_UPDATE = 1;
   MESSAGE_TYPE_TEXT_MESSAGE = 2;
@@ -36,17 +36,18 @@ enum MessageType {
   MESSAGE_TYPE_ACKNOWLEDGMENT = 5;
   MESSAGE_TYPE_EMERGENCY = 6;
   MESSAGE_TYPE_NETWORK_DISCOVERY = 7;
-  
+  MESSAGE_TYPE_CONTENT_SYNC = 8;       // Bundled state sync (positions + messages)
+
   // Routing protocol messages (handled in routing.proto)
   MESSAGE_TYPE_ROUTE_REQUEST = 10;
   MESSAGE_TYPE_ROUTE_REPLY = 11;
   MESSAGE_TYPE_ROUTE_ERROR = 12;
   MESSAGE_TYPE_LINK_STATE_ADVERTISEMENT = 13;
-  
-  // Geographic routing messages (handled in geographic.proto)  
+
+  // Geographic routing messages (handled in geographic.proto)
   MESSAGE_TYPE_GEOGRAPHIC_BEACON = 20;
   MESSAGE_TYPE_POSITION_UPDATE = 21;
-  
+
   // Security and key management messages
   MESSAGE_TYPE_KEY_EXCHANGE = 30;
   MESSAGE_TYPE_CERTIFICATE_REQUEST = 31;
@@ -54,6 +55,10 @@ enum MessageType {
   MESSAGE_TYPE_KEY_REVOCATION = 33;
   MESSAGE_TYPE_SIGNATURE_VERIFICATION_REQUEST = 34;
   MESSAGE_TYPE_SIGNATURE_VERIFICATION_RESPONSE = 35;
+
+  // Fragmentation and streaming
+  MESSAGE_TYPE_FRAGMENT = 40;          // Fragmented payload (part of larger message)
+  MESSAGE_TYPE_VOICE = 41;             // Voice/audio data (Codec2)
 }
 
 // GPS position update message
@@ -64,6 +69,28 @@ message GPSUpdatePayload {
   bool is_differential = 4;            // Differential GPS flag
   uint64 timestamp = 5;                // GPS timestamp
   float accuracy = 6;                  // Position accuracy in meters
+}
+
+// Node position entry for content sync (compact format)
+message SyncPosition {
+  string node_id = 1;                  // Node this position belongs to
+  GPSCoordinate position = 2;          // GPS position
+  uint64 timestamp = 3;                // Position timestamp
+}
+
+// Text message entry for content sync (compact format)
+message SyncTextMessage {
+  string message_id = 1;               // Original message ID
+  string source_id = 2;                // Original sender
+  string text = 3;                     // Message text
+  uint64 timestamp = 4;                // Message timestamp
+}
+
+// Bundled content sync payload - positions + messages in one fragmented stream
+message ContentSyncPayload {
+  uint64 mesh_version = 1;             // Sender's mesh version
+  repeated SyncPosition positions = 2; // GPS positions to sync
+  repeated SyncTextMessage messages = 3; // Text messages to sync
 }
 
 // Hello message for neighbor discovery
@@ -239,4 +266,41 @@ enum VerificationResult {
   VERIFICATION_RESULT_KEY_EXPIRED = 4; // Signer's key has expired
   VERIFICATION_RESULT_KEY_REVOKED = 5; // Signer's key has been revoked
   VERIFICATION_RESULT_ALGORITHM_UNSUPPORTED = 6; // Signature algorithm not supported
+}
+
+// ================================================================
+// Fragmentation Support
+// ================================================================
+
+// Flags for fragment state
+enum FragmentFlags {
+  FRAGMENT_FLAG_NONE = 0;
+  FRAGMENT_FLAG_FIRST = 1;             // First fragment of stream
+  FRAGMENT_FLAG_MORE = 2;              // More fragments follow
+  FRAGMENT_FLAG_LAST = 4;              // Last fragment, rebroadcast now
+}
+
+// Fragment header for multi-packet messages
+message FragmentPayload {
+  uint32 stream_id = 1;                // Unique ID for this fragmented message
+  uint32 fragment_index = 2;           // 0, 1, 2, ... (order in stream)
+  uint32 total_fragments = 3;          // Total expected fragment count
+  uint32 flags = 4;                    // FragmentFlags bitmask
+  MessageType original_type = 5;       // Original message type being fragmented
+  bytes data = 6;                      // Fragment data
+}
+
+// ================================================================
+// Voice/Audio Support (Codec2)
+// ================================================================
+
+// Voice packet for PTT audio
+message VoicePayload {
+  uint32 stream_id = 1;                // Unique ID for this PTT session
+  uint32 sequence = 2;                 // Packet order within stream
+  uint32 codec_mode = 3;               // Codec2 mode: 700, 1300, 1600, 2400, 3200
+  uint32 flags = 4;                    // FragmentFlags (START, MORE, LAST)
+  uint32 total_packets = 5;            // Expected packets (hint for buffering)
+  bytes frames = 6;                    // Packed Codec2 frames
+  uint32 frame_count = 7;              // Number of Codec2 frames in this packet
 }

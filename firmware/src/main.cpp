@@ -1,7 +1,7 @@
-/**
+﻿/**
  * @file main.cpp
  * @brief Main firmware entry point for LoRa Mesh GPS TAK
- * 
+ *
  * This firmware implements a complete LoRa mesh networking system with:
  * - AODV routing protocol
  * - HMAC-SHA256 message authentication
@@ -11,6 +11,7 @@
  */
 
 #include <Arduino.h>
+#include <Preferences.h>
 #include "config.h"
 #include "node_id.h"
 #include "security.h"
@@ -45,14 +46,14 @@ void setup() {
     // Initialize serial console
     Serial.begin(SERIAL_BAUD_RATE);
     delay(1000); // Wait for serial
-    
+
     LOG_I("========================================");
     LOG_I("LoRa Mesh GPS Team Awareness Kit");
     LOG_I("Firmware Version: %s", FIRMWARE_VERSION_STRING);
     LOG_I("Device Type: %s", DEVICE_NAME);
     LOG_I("Build Date: %s %s", FIRMWARE_BUILD_DATE, FIRMWARE_BUILD_TIME);
     LOG_I("========================================");
-    
+
     // Print capabilities
     LOG_I("Capabilities:");
     LOG_I("  LoRa: %s", HAS_LORA ? "YES" : "NO");
@@ -62,7 +63,18 @@ void setup() {
     LOG_I("  Keyboard: %s", HAS_KEYBOARD ? "YES" : "NO");
     LOG_I("  Standalone Mode: %s", STANDALONE_MODE ? "YES" : "NO");
     LOG_I("");
-    
+
+    // ================================================================
+    // ERASE NVS for testing (clear all stored mesh state)
+    // ================================================================
+    LOG_W("Erasing NVS for clean test state...");
+    Preferences prefs;
+    prefs.begin("mesh", false);
+    prefs.clear();
+    prefs.end();
+    delay(500); // Give time for erase
+    LOG_W("NVS erased");
+
     // ================================================================
     // Initialize Node ID
     // ================================================================
@@ -72,7 +84,7 @@ void setup() {
         while (1) delay(1000);
     }
     LOG_I("Node ID: %s", NodeID::getNodeID().c_str());
-    
+
     // ================================================================
     // Initialize Security
     // ================================================================
@@ -82,7 +94,7 @@ void setup() {
         while (1) delay(1000);
     }
     LOG_I("Security initialized with HMAC-SHA256");
-    
+
     // ================================================================
     // Initialize GPS Manager
     // ================================================================
@@ -92,7 +104,7 @@ void setup() {
         while (1) delay(1000);
     }
     LOG_I("GPS manager initialized (mode: %d)", gpsManager.getSourceMode());
-    
+
     // ================================================================
     // Initialize LoRa Radio
     // ================================================================
@@ -106,7 +118,7 @@ void setup() {
 #else
     LOG_W("LoRa hardware not available, running in simulation mode");
 #endif
-    
+
     // ================================================================
     // Initialize Routing Engine
     // ================================================================
@@ -115,13 +127,13 @@ void setup() {
         LOG_E("Failed to initialize routing engine!");
         while (1) delay(1000);
     }
-    
+
     // Set callbacks
     routingEngine.setTransmitCallback(transmitLoRaMessage);
     routingEngine.setReceiveCallback(onApplicationMessage);
-    
+
     LOG_I("Routing engine initialized (AODV protocol)");
-    
+
     // ================================================================
     // Initialize Serial CLI
     // ================================================================
@@ -130,7 +142,7 @@ void setup() {
     serialCLI.setRoutingEngine(&routingEngine);
     serialCLI.setGPSManager(&gpsManager);
     serialCLI.printWelcome();
-    
+
     // ================================================================
     // Initialize Display
     // ================================================================
@@ -141,7 +153,7 @@ void setup() {
     } else {
         LOG_W("Display initialization failed - continuing without display");
     }
-    
+
     // ================================================================
     // Startup Complete
     // ================================================================
@@ -152,19 +164,19 @@ void setup() {
     LOG_I("");
     LOG_I("Type 'help' for available commands");
     LOG_I("");
-    
+
     // ================================================================
     // Start LoRa in continuous receive mode
     // ================================================================
 #if HAS_LORA
     loraRadio.startListening();
     LOG_I("LoRa radio in continuous receive mode");
-    
+
     // Send initial HELLO beacon to announce presence
     routingEngine.sendHelloBeacon();
     LOG_I("Initial HELLO beacon sent");
 #endif
-    
+
     // Initialize timing
     last_gps_broadcast = millis();
     last_maintenance = millis();
@@ -172,18 +184,18 @@ void setup() {
 
 void loop() {
     unsigned long now = millis();
-    
+
     // ================================================================
     // Update GPS
     // ================================================================
     gpsManager.update();
-    
+
     // Update routing engine with current position for geographic routing
     GPSCoordinate gps_pos;
     if (gpsManager.hasFix() && gpsManager.getPosition(gps_pos)) {
         routingEngine.setMyPosition(gps_pos);
     }
-    
+
     // ================================================================
     // Check for LoRa messages
     // ================================================================
@@ -195,7 +207,7 @@ void loop() {
         routingEngine.processMessage(msg, rssi);
     }
 #endif
-    
+
     // ================================================================
     // Routing Engine Maintenance
     // ================================================================
@@ -203,7 +215,7 @@ void loop() {
         routingEngine.maintain();
         last_maintenance = now;
     }
-    
+
     // ================================================================
     // Periodic GPS Broadcast
     // ================================================================
@@ -211,12 +223,12 @@ void loop() {
         broadcastGPSPosition();
         last_gps_broadcast = now;
     }
-    
+
     // ================================================================
     // Process Serial Commands
     // ================================================================
     serialCLI.process();
-    
+
     // ================================================================
     // Update Display
     // ================================================================
@@ -225,7 +237,34 @@ void loop() {
         displayManager.update();
         last_display_update = now;
     }
-    
+
+    // ================================================================
+    // Powerbank Keep-Alive
+    // Many USB powerbanks auto-shutoff when current draw is too low.
+    // Periodically pulse the LED or do a brief high-current operation
+    // to keep the powerbank active.
+    // ================================================================
+    static unsigned long last_keepalive = 0;
+    if (now - last_keepalive >= 30000) {  // Every 30 seconds
+        // Brief LED flash to draw current and keep powerbank alive
+        #if defined(LED_PIN) || defined(LED_BUILTIN)
+        #ifdef LED_PIN
+        const int led = LED_PIN;
+        #else
+        const int led = LED_BUILTIN;
+        #endif
+        pinMode(led, OUTPUT);
+        for (int i = 0; i < 5; i++) {
+            digitalWrite(led, HIGH);
+            delay(50);
+            digitalWrite(led, LOW);
+            delay(50);
+        }
+        #endif
+        last_keepalive = now;
+        LOG_D("Powerbank keep-alive pulse");
+    }
+
     // Small delay to prevent watchdog issues
     delay(10);
 }
@@ -249,21 +288,21 @@ void onApplicationMessage(const LoRaMessage& msg) {
         case MESSAGE_TYPE_GPS_UPDATE:
             handleReceivedGPS(msg);
             break;
-            
+
         case MESSAGE_TYPE_TEXT_MESSAGE:
             handleReceivedTextMessage(msg);
             break;
-            
+
         case MESSAGE_TYPE_EMERGENCY:
             LOG_W("EMERGENCY message received from: %s", msg.source_id);
             // TODO: Handle emergency
             break;
-            
+
         case MESSAGE_TYPE_DATA:
             LOG_D("Data message received from: %s", msg.source_id);
             // TODO: Handle data
             break;
-            
+
         default:
             LOG_D("Unhandled message type: %d", msg.message_type);
             break;
@@ -276,11 +315,11 @@ void broadcastGPSPosition() {
         LOG_V("No GPS position to broadcast");
         return;
     }
-    
+
     // Encode GPS coordinate
     uint8_t payload_buf[128];
     size_t payload_len = ProtobufHandler::encodeGPSCoordinate(pos, payload_buf, sizeof(payload_buf));
-    
+
     if (payload_len > 0) {
         std::vector<uint8_t> payload(payload_buf, payload_buf + payload_len);
         if (routingEngine.sendMessage("", MESSAGE_TYPE_GPS_UPDATE, payload, PRIORITY_ROUTINE)) {
@@ -296,35 +335,35 @@ void handleReceivedGPS(const LoRaMessage& msg) {
         LOG_E("Failed to decode GPS from: %s", msg.source_id);
         return;
     }
-    
+
     // Calculate distance and bearing to this node
     GPSCoordinate my_pos;
     double distance = 0.0;
     double bearing = 0.0;
-    
+
     if (gpsManager.getPosition(my_pos)) {
         distance = GPSManager::calculateDistance(my_pos, gps);
         bearing = GPSManager::calculateBearing(my_pos, gps);
     }
-    
-    LOG_I("GPS from %s: %.6f, %.6f (%.0f m, %.0f°)",
+
+    LOG_I("GPS from %s: %.6f, %.6f (%.0f m, %.0fÃƒâ€šÃ‚Â°)",
           msg.source_id, gps.latitude, gps.longitude, distance, bearing);
 }
 
 void handleReceivedTextMessage(const LoRaMessage& msg) {
     // Decode TextMessagePayload using actual nanopb type
     TextMessagePayload txt = lora_mesh_v1_TextMessagePayload_init_zero;
-    
+
     // payload is now PB_BYTES_ARRAY_T - access via .bytes and .size
     if (!ProtobufHandler::decodePayload(msg.payload.bytes, msg.payload.size, txt)) {
         LOG_E("Failed to decode text message from: %s", msg.source_id);
         return;
     }
-    
+
     // Use source_id from message if sender_callsign wasn't decoded
     // txt.text and txt.sender_callsign are now char arrays
     String sender = strlen(txt.sender_callsign) > 0 ? String(txt.sender_callsign) : String(msg.source_id);
-    
+
     LOG_I("");
     LOG_I("========================================");
     LOG_I("TEXT MESSAGE RECEIVED");
@@ -333,7 +372,7 @@ void handleReceivedTextMessage(const LoRaMessage& msg) {
     LOG_I("Message: %s", txt.text);
     LOG_I("========================================");
     LOG_I("");
-    
+
     // Add to display (get RSSI from routing engine stats)
     displayManager.addMessage(txt.text, msg.source_id, 0);
     displayManager.setMode(DISPLAY_MODE_MESSAGES);  // Switch to messages view

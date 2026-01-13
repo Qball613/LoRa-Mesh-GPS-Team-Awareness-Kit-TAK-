@@ -15,6 +15,7 @@ ESP32-S3 firmware for the LoRa Mesh GPS Team Awareness Kit. Implements AODV rout
 ## Hardware Support
 
 ### LilyGO T3-S3
+
 - ESP32-S3 microcontroller
 - SX1262 LoRa radio (915 MHz)
 - ST7789 TFT display (170×320)
@@ -22,6 +23,7 @@ ESP32-S3 firmware for the LoRa Mesh GPS Team Awareness Kit. Implements AODV rout
 - Bluetooth (for gateway mode)
 
 ### LilyGO T-Deck
+
 - ESP32-S3 microcontroller
 - Optional SX1262 LoRa radio
 - ST7789 TFT display (320×240)
@@ -62,7 +64,7 @@ pio device monitor -b 115200
 
 First boot will generate a unique node ID and HMAC key. **Copy the HMAC key to all nodes in your mesh!**
 
-```
+```text
 Node ID: NODE_A1B2C3D4
 HMAC Key (HEX): 1A2B3C4D...
 
@@ -72,7 +74,8 @@ Type 'help' for available commands
 ## Serial Commands
 
 ### GPS Commands
-```
+
+```text
 set_manual_gps <lat> <lon>   - Set manual GPS coordinates (for testing)
 set_static_gps <lat> <lon>   - Set static GPS coordinates (persists in NVS)
 set_gps_mode <0|1|2>         - Set GPS mode (0=hardware, 1=static, 2=manual)
@@ -81,20 +84,23 @@ show_gps                     - Display GPS information
 ```
 
 ### Messaging Commands
-```
+
+```text
 send_msg <dest> <text>       - Send text message to destination node
 send_msg BROADCAST <text>    - Broadcast message to all nodes
 ```
 
 ### Routing Commands
-```
+
+```text
 show_routes                  - Display routing table
 show_neighbors               - Display neighbor table (1-hop)
 show_stats                   - Display statistics
 ```
 
 ### System Commands
-```
+
+```text
 set_node_id <id>             - Set custom node ID (requires restart)
 generate_key                 - Generate new HMAC key (copy to all nodes!)
 help                         - Show help message
@@ -104,7 +110,7 @@ help                         - Show help message
 
 For initial testing without physical GPS modules:
 
-```
+```text
 > set_manual_gps 37.7749 -122.4194
 OK: Manual GPS set to 37.774900, -122.419400
 
@@ -123,7 +129,8 @@ Altitude:  0.0 m
 ## Multi-Radio Testing Workflow
 
 ### 2-Node Test (Direct Link)
-```
+
+```text
 # Node A
 > set_manual_gps 37.7749 -122.4194
 > set_node_id NODE_A
@@ -136,7 +143,8 @@ Altitude:  0.0 m
 ```
 
 ### 3-Node Test (Multi-Hop)
-```
+
+```text
 # Node A (originator)
 > send_msg NODE_C Test multi-hop
 
@@ -148,6 +156,7 @@ Altitude:  0.0 m
 ```
 
 ### 6-Node Mesh Test
+
 - Deploy nodes in different locations
 - Use `show_routes` to verify route discovery
 - Use `show_neighbors` to see 1-hop connectivity
@@ -157,28 +166,32 @@ Altitude:  0.0 m
 ## Build Environments
 
 ### t3s3-gateway
+
 - LoRa + Bluetooth + TFT + GPS
 - Bluetooth gateway for Python backend
 - Minimal TFT status display
 
 ### t3s3-standalone
+
 - LoRa + TFT + GPS
 - Full standalone operation
 - No Bluetooth gateway
 
 ### tdeck-lora
+
 - LoRa + Keyboard + TFT + GPS
 - Full keyboard input
 - Standalone operation
 
 ### tdeck-standalone
+
 - Keyboard + TFT + Bluetooth (no LoRa)
 - Bluetooth-only gateway device
 - Connects to LoRa nodes via BLE
 
 ## Project Structure
 
-```
+```text
 firmware/
 ├── platformio.ini          # Build configuration
 ├── include/                # Header files
@@ -227,7 +240,8 @@ Edit `include/config.h` to customize:
 ### HMAC Key Management
 
 1. **Generate Key on First Node**:
-   ```
+
+   ```text
    > generate_key
    OK: New HMAC key generated
    HMAC Key (HEX): 1A2B3C4D5E6F...
@@ -246,33 +260,40 @@ Edit `include/config.h` to customize:
 ## Troubleshooting
 
 ### LoRa Initialization Fails
-```
+
+```text
 ERROR: LoRa init failed, code: -2
 ```
+
 - Check SPI pin definitions in platformio.ini
 - Verify LoRa module power supply
 - Check SX1262 BUSY/DIO1 connections
 
 ### No GPS Fix
-```
+
+```text
 GPS Mode: 0 (Hardware)
 Has Fix: No
 Satellites: 0
 ```
+
 - GPS needs outdoor location or near window
 - Wait 30-60 seconds for satellite acquisition
 - Use manual mode for indoor testing
 
 ### No Neighbors Detected
-```
+
+```text
 Total neighbors: 0
 ```
+
 - Check LoRa frequency (must match all nodes)
 - Verify HMAC keys match on all nodes
 - Increase TX power or reduce distance
 - Check `show_stats` for RX errors
 
 ### Messages Not Forwarding
+
 - Use `show_routes` to verify route exists
 - Check TTL hasn't expired (default: 10 hops)
 - Monitor logs for "Message forwarded"
@@ -281,6 +302,7 @@ Total neighbors: 0
 ## Next Steps
 
 ### TODO: Protocol Buffer Integration
+
 The current implementation uses placeholder binary serialization. To integrate actual nanopb-generated Protocol Buffers:
 
 1. Copy generated `.pb.h` and `.pb.c` files from `../lora_mesh/v1/` to `lib/nanopb/`
@@ -289,12 +311,14 @@ The current implementation uses placeholder binary serialization. To integrate a
 4. Test with real protobuf messages
 
 ### TODO: Python Backend Integration
+
 - Implement Meshtastic-style serial framing
 - Create Python library for serial/Bluetooth connection
 - Extend `routing_simulation/visualization.py` for live data
 - Add bidirectional command injection
 
 ### TODO: TFT Display UI
+
 - Implement roster display for standalone mode
 - Add message inbox viewer
 - Create keyboard input handler for T-Deck
@@ -303,6 +327,7 @@ The current implementation uses placeholder binary serialization. To integrate a
 ## Performance
 
 Initial testing metrics (simulated):
+
 - **Route Discovery**: <3 seconds for 6-node mesh
 - **Message Latency**: ~100-500ms per hop
 - **Throughput**: ~1-2 messages/second per node (SF7)

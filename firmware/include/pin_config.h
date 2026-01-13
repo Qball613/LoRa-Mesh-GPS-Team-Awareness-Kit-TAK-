@@ -1,17 +1,17 @@
-/*
+﻿/*
  * @Description: Pin Configuration
  * @version: 2.0
  * @Author: None
  * @Date: 2023-06-05 13:01:59
  * @LastEditors: Migrated to variant system
  * @LastEditTime: 2026-01-07
- * 
+ *
  * All pin definitions now come from variant.h files.
  * Select your board variant in platformio.ini:
  *   - t3s3-lr1121  (LR1121 chip)
  *   - t3s3-sx1262  (SX1262 chip)
  *   - t3s3-sx1276  (SX1276/1277/1278 chip)
- * 
+ *
  * Each variant defines all pins - no need to edit this file.
  */
 #pragma once

@@ -1,7 +1,7 @@
-/**
+﻿/**
  * @file protobuf_handler.cpp
  * @brief Protocol Buffer encoding/decoding using STATIC nanopb types
- * 
+ *
  * No callback indirection - direct static array access.
  */
 
@@ -46,12 +46,12 @@ String ProtobufHandler::generateMessageID() {
     for (int i = 0; i < 8; i++) {
         random_bytes[i] = esp_random() & 0xFF;
     }
-    
+
     char id[32];
     snprintf(id, sizeof(id), "%02X%02X%02X%02X%02X%02X%02X%02X",
              random_bytes[0], random_bytes[1], random_bytes[2], random_bytes[3],
              random_bytes[4], random_bytes[5], random_bytes[6], random_bytes[7]);
-    
+
     return String(id);
 }
 
@@ -118,32 +118,32 @@ GPSUpdatePayload ProtobufHandler::createGPSUpdatePayload() {
 
 size_t ProtobufHandler::encodeLoRaMessage(const LoRaMessage& msg, uint8_t* buffer, size_t buffer_size) {
     pb_ostream_t stream = pb_ostream_from_buffer(buffer, buffer_size);
-    
+
     if (!pb_encode(&stream, lora_mesh_v1_LoRaMessage_fields, &msg)) {
         LOG_E("LoRaMessage encode failed: %s", PB_GET_ERROR(&stream));
         return 0;
     }
-    
+
     LOG_D("Encoded LoRaMessage: type=%d, src=%s, size=%d",
           msg.message_type, msg.source_id, stream.bytes_written);
-    
+
     return stream.bytes_written;
 }
 
 bool ProtobufHandler::decodeLoRaMessage(const uint8_t* buffer, size_t buffer_size, LoRaMessage& msg) {
     // Initialize to zero before decode
     memset(&msg, 0, sizeof(msg));
-    
+
     pb_istream_t stream = pb_istream_from_buffer(buffer, buffer_size);
-    
+
     if (!pb_decode(&stream, lora_mesh_v1_LoRaMessage_fields, &msg)) {
         LOG_E("LoRaMessage decode failed: %s", PB_GET_ERROR(&stream));
         return false;
     }
-    
+
     LOG_D("Decoded LoRaMessage: type=%d, src=%s, payload=%d bytes",
           msg.message_type, msg.source_id, msg.payload.size);
-    
+
     return true;
 }
 

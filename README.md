@@ -3,11 +3,13 @@
 ---
 
 ## 🚀 Start Here: What Is This?
+
 A simple, secure, and robust way for your team to share live GPS locations—no cell towers, no Wi-Fi, just small radios and a map! Designed for field teams (airsoft, SAR, outdoor evenThis section explains our comprehensive routing system that combines multiple protocols for optimal performance in diverse LoRa mesh scenarios. The system has been designed to handle high mobility, varying link quality, energy constraints, and network partitions.s, etc.) who need to know where everyone is, even in remote areas.
 
 ---
 
 ## 🗺️ How It Works (In Plain English)
+
 - Each team member carries a small device (ESP32 + LoRa radio + GPS module).
 - The device gets your GPS position and sends it out over the air.
 - All devices form a mesh network, relaying each other’s locations so everyone stays in sync.
@@ -16,6 +18,7 @@ A simple, secure, and robust way for your team to share live GPS locations—no 
 ---
 
 ## 🌟 Key Features
+
 - **Live Team Map:** See where everyone is, in real time.
 - **No Infrastructure Needed:** Works anywhere—forests, mountains, urban, or rural.
 - **Secure:** All messages are signed, so only your team can join and see locations.
@@ -25,6 +28,7 @@ A simple, secure, and robust way for your team to share live GPS locations—no 
 ---
 
 ## 🏁 Quick Start: Building Your Mesh
+
 1. **Assemble Hardware:** ESP32 + LoRa + GPS for each teammate.
 2. **Review Protocol Definitions:** Check the `/lora_mesh/v1/` folder for Protocol Buffer message definitions.
 3. **Flash Starter Firmware:** Blink an LED, read GPS, send/receive LoRa packets.
@@ -38,11 +42,13 @@ A simple, secure, and robust way for your team to share live GPS locations—no 
 Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, testable sequence. Each phase builds on the last, ensuring a robust and maintainable system.
 
 ### Phase 1: Hardware Bring-Up & Basic Communication
+
 - Assemble ESP32 + LoRa + GPS hardware for each node.
 - Flash basic firmware: blink LED, read GPS, send/receive raw LoRa packets.
 - Validate radio range and GPS accuracy in your environment.
 
 ### Phase 2: Message Serialization with Protobufs ✅ IMPLEMENTED
+
 - **DONE**: Protocol Buffer definitions complete in `/lora_mesh/v1/` directory
   - `messages.proto`: Core LoRaMessage wrapper and routing control
   - `routing.proto`: AODV route request/reply payloads
@@ -53,41 +59,49 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
 - **NEXT**: Integrate protobuf encode/decode into your ESP32 firmware
 
 ### Phase 3: Cryptographic Signing & Verification
+
 - Implement HMAC or ECC signing for all messages (see 'Cryptography' section).
 - Add signature verification on receive; drop invalid messages.
 - Test with mismatched keys to ensure security enforcement.
 
 ### Phase 4: Node Discovery & Routing Table
+
 - Implement signed HELLO beacons for neighbor discovery.
 - Build and maintain a routing table (see 'Routing Table Structure').
 - Test neighbor addition/removal and table updates.
 
 ### Phase 5: On-Demand Routing (AODV)
+
 - Implement RREQ, RREP, and RERR message handling using the protobuf message definitions.
 - Enable route discovery and maintenance (see 'Routing Protocol').
 - Test multi-hop message delivery and route repair.
 
 ### Phase 6: Smart Relay/Selective Rebroadcast
+
 - Implement relay election and random backoff (see 'Smart Relays').
 - Tune relay selection parameters (RSSI, random, role).
 - Test with multiple nodes to ensure efficient message propagation.
 
 ### Phase 7: Application Layer (GPS, POI, Text Messaging)
+
 - Integrate GPS data collection and periodic broadcast.
 - Add POI marking, versioning, and sync via HELLO packets.
 - Implement secure text messaging (unicast, group, broadcast).
 - Test all application features in the mesh.
 
 ### Phase 8: Security Hardening & Replay Protection
+
 - Add timestamp/sequence number checks for replay protection.
 - Test with delayed/duplicate packets to ensure robustness.
 - Review and rotate keys as needed.
 
 ### Phase 9: Visualization & User Interface
+
 - Connect nodes to displays or mobile devices for live map and messaging.
 - Integrate with TAK/ATAK or custom mapping apps if desired.
 
 ### Phase 10: Field Testing & Optimization
+
 - Deploy in real-world scenarios; monitor performance and reliability.
 - Tune parameters (update rate, TTL, relay weights) for your use case.
 - Document lessons learned and update firmware as needed.
@@ -95,6 +109,7 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
 ---
 
 ## 🔍 How Do I See the Map?
+
 - Connect your device to a phone, tablet, or small screen.
 - Use a custom app, TAK/ATAK, or even a web map to view everyone’s positions.
 - Alerts can warn you if someone goes out of bounds or loses contact.
@@ -102,6 +117,7 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
 ---
 
 ## 🔒 How Is It Secure?
+
 - Only devices with the right digital keys can join and share locations.
 - All messages are signed, so you know they’re real.
 - No data leaves the mesh—no cloud, no tracking, just your team.
@@ -109,6 +125,7 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
 ---
 
 ## 🤔 Why Use This?
+
 - Stay safe and coordinated in the field.
 - No monthly fees or cell coverage required.
 - Works in tough environments where other tech fails.
@@ -118,6 +135,7 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
 ## 📋 Current Implementation Status
 
 ### ✅ What's Implemented
+
 - **Protocol Buffer Definitions**: Complete message format definitions in `/lora_mesh/v1/`
 - **ESP32 Firmware**: Working C++ implementation in `/firmware/` directory
   - AODV routing protocol with RREQ/RREP/RERR handling
@@ -129,6 +147,7 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
 - **Python Simulation**: Working network simulator in `/routing_simulation/`
 
 ### 🔧 What's Next
+
 - **Protocol Buffer Integration**: Replace placeholder serialization with actual nanopb
 - **Field Testing**: Deploy 6-radio mesh for real-world validation
 - **TFT Display UI**: Implement roster and messaging display
@@ -140,6 +159,7 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
 ## 🚀 Getting Started with Firmware
 
 ### Quick Start
+
 ```bash
 cd firmware/
 pip install platformio
@@ -154,6 +174,7 @@ See [firmware/BUILD.md](firmware/BUILD.md) for detailed build instructions and [
 # Technical Deep Dive (For Developers)
 
 ## Table of Contents
+
 1. Introduction
 2. Network Architecture
 3. Node Addressing & Discovery
@@ -173,6 +194,7 @@ See [firmware/BUILD.md](firmware/BUILD.md) for detailed build instructions and [
 ---
 
 ## 1. Introduction
+
 This document details the design, operation, and scaling considerations for a custom LoRa mesh network routing protocol. The protocol is designed for environments with up to 100+ users, each equipped with a 915 MHz LoRa radio, and supports both independent and group communications across logical network sections (channels).
 
 **Primary Use Case: GPS Forward Team Awareness Kit (TAK)**
@@ -222,11 +244,13 @@ message LoRaMessage {
 ```
 
 **ESP32 Implementation Ready:**
+
 - Protocol definitions compiled and tested with nanopb 0.4.9.1
 - .options files configured for ESP32 memory constraints
 - Ready for integration into ESP32 firmware (implementation needed)
 
 **Future ESP32 Integration Example:**
+
 ```cpp
 // Example of how GPS data will be packaged (implementation needed)
 LoRaMessage message;
@@ -250,11 +274,13 @@ gps_data.timestamp = current_time();
 **Tip:** Protobufs make it easy to add new fields (e.g., battery level, status) in the future without breaking compatibility.
 
 ## Visualization and Team Awareness (Implementation Needed)
+
 - **Display:** Each node can be connected to a display (e.g., OLED, TFT, or mobile device via Bluetooth/serial) to show a live map of team positions.
 - **Integration:** Data can be exported to TAK/ATAK, QGIS, or custom mapping apps for advanced visualization.
 - **Alerts:** The system can generate alerts for out-of-bounds, lost comms, or proximity events.
 
 ## Security and Privacy ✅ SCHEMA IMPLEMENTED
+
 - All GPS/location packets will be signed using the CryptographicSignature protobuf message to prevent spoofing and tampering.
 - Only authenticated nodes can participate and view team locations.
 - Location data is not sent to the cloud or external servers—mesh only.
@@ -263,16 +289,19 @@ gps_data.timestamp = current_time();
 ---
 
 ## 2. Network Architecture
+
 - **Nodes:** Each user is a node in the mesh network.
 - **Mesh Topology:** Nodes form a dynamic, self-healing mesh network.
 - **Sections/Channels:** The network is logically divided into sections, each mapped to a LoRa channel or spreading factor. Gateway nodes bridge sections.
 
 ## 3. Node Addressing & Discovery
+
 - **Unique IDs:** Each node is assigned a unique address (e.g., 16-bit integer).
 - **Neighbor Discovery:** Nodes periodically broadcast signed 'HELLO' beacons to discover and authenticate direct neighbors, ensuring only legitimate nodes are added to routing tables.
 - **Section Assignment:** Nodes are assigned to sections based on location or function.
 
 ## 4. Routing Protocol (AODV for LoRa) ✅ SCHEMA IMPLEMENTED
+
 - **On-Demand Routing:** Routes are established only when needed, minimizing control traffic.
 - **Routing Table:** Each node maintains a table of known routes (destination, next hop, hop count, sequence number, section).
 - **Route Discovery:** Initiated via RREQ (Route Request) messages; routes are confirmed with RREP (Route Reply).
@@ -289,84 +318,102 @@ This section explains how the mesh finds and maintains routes, how messages trav
 Our routing system implements a **sophisticated multi-protocol approach** that intelligently selects the best routing strategy based on current network conditions:
 
 **Primary Routing Protocols:**
+
 1. **AODV (Reactive)**: On-demand route discovery when needed - reduces control overhead
 2. **Link State (Proactive)**: Maintains network topology awareness for immediate routing decisions
 3. **Geographic Routing**: Uses GPS coordinates for position-based forwarding in mobile scenarios
 4. **Multi-Path Routing**: Maintains alternate routes for reliability and load balancing
 
 **Enhanced Route Discovery Process:**
+
 - **Intelligent Protocol Selection**: System analyzes network conditions (mobility, density, energy) to choose optimal routing strategy
 - **AODV with Enhancements**: Uses `RouteRequestPayload` messages with QoS requirements, energy constraints, and multi-path discovery
 - **Geographic Fallback**: When topology routes fail, automatically switches to GPS-based forwarding with greedy and perimeter routing
 - **Cryptographic Security**: All routing messages signed with `CryptographicSignature` supporting multiple algorithms (HMAC, Ed25519, ECDSA)
 
 **Advanced Route Discovery Features:**
+
 - **Multi-Path Discovery**: Simultaneously discovers multiple diverse paths with different optimization criteria
 - **Collision Avoidance**: Priority-based delays and transmission suppression prevent broadcast storms when multiple nodes receive the same RREQ
 - **Message Fragmentation**: Large messages automatically fragmented with per-fragment signing for security
 - **QoS-Aware Discovery**: Route requests include service requirements for emergency, tactical, and routine messages
 
 ### 2. Geographic Routing & Mobility Adaptation
+
 **When Used**: Mobile networks, topology route failures, sparse networks, GPS-enabled scenarios
 
 **Geographic Routing Strategies Designed**:
+
 - **Greedy Forwarding**: Forward to neighbor closest to destination with collision avoidance using priority-based delays
 - **Perimeter Routing**: When greedy fails, route around obstacles using computational geometry and right-hand rule
 - **Predictive Routing**: Account for node mobility by predicting future positions based on velocity estimation from GPS history
 
 **Advanced Geographic Features**:
+
 - **Collision Avoidance**: Multiple nodes receiving same message coordinate forwarding using geographic suitability scoring
 - **Link Quality Integration**: Combines geographic progress with RSSI and battery levels for optimal forwarding decisions
 - **Mobility Prediction**: Estimates node velocity from recent position history to route to predicted future locations
 
 ### 3. Multi-Path Routing & Advanced Route Maintenance
+
 **Multi-Path Discovery Process**:
+
 - **Diverse Path Discovery**: Launches multiple RREQs with different optimization preferences (shortest, most reliable, lowest energy)
 - **Quality-Based Route Management**: Maintains primary route plus bounded list of alternate routes sorted by quality score
 - **Intelligent Route Promotion**: Better routes automatically promoted to primary, with old primary demoted to alternate
 
 **Route Quality Assessment Factors**:
+
 - **Signal Strength**: RSSI measurements and link stability over time
 - **Path Efficiency**: Hop count and geographic progress toward destination
 - **Energy Considerations**: Battery levels and energy cost of intermediate nodes
 - **Reliability Metrics**: Historical packet loss rates and route lifetime statistics
 
 **Load Balancing & Congestion Control**:
+
 - **Primary Route**: Handles normal traffic with highest quality path
 - **Alternate Route Usage**: Distributes load during congestion, provides immediate failover
 - **Congestion Detection**: Monitors channel utilization and implements adaptive backoff
 - **Traffic Shaping**: Different message types get appropriate routing priority and path selection
 
 ### 4. Advanced Security & Message Handling
+
 **Cryptographic Integration**:
+
 - **Per-Message Signing**: All routing messages signed with `CryptographicSignature` supporting HMAC-SHA256, Ed25519, ECDSA
 - **Fragment-Level Security**: Large messages fragmented with each fragment individually signed for integrity
 - **Signature Verification**: All received messages verified before processing, invalid signatures dropped
 
 **Message Fragmentation & Reassembly**:
+
 - **Automatic Fragmentation**: Messages exceeding LoRa payload limits automatically fragmented
 - **Fragment Security**: Each fragment includes `FragmentHeader` and individual cryptographic signature
 - **Reassembly Management**: Timeout-based fragment collection with complete message reconstruction
 - **Security Verification**: Fragment signatures verified before reassembly, complete message optionally re-verified
 
 ### 5. LoRa-Specific Optimizations & Collision Avoidance
+
 **Broadcast Storm Prevention**:
+
 - **Priority-Based Delays**: Better forwarders (closer to destination, better signal) get shorter transmission delays
 - **Transmission Suppression**: Nodes monitor for duplicate transmissions and cancel their own if already forwarded by better node
 - **Geographic Coordination**: Multiple receivers coordinate forwarding based on position, link quality, and battery level
 
 **LoRa Physical Layer Optimizations**:
+
 - **Adaptive TTL**: Dynamic Time To Live based on network density and message priority
 - **Channel Awareness**: Route discovery respects LoRa channel boundaries and gateway bridging
 - **Duty Cycle Compliance**: Transmission scheduling respects regional duty cycle regulations
 - **Power Management**: Adaptive transmission power based on neighbor distance and network density
 
 **Network Density Adaptation**:
+
 - **Sparse Networks**: Increased beacon frequency and transmission power for connectivity
 - **Dense Networks**: Reduced control overhead and more selective forwarding to prevent congestion
 - **Mobility Detection**: Adjusts routing strategy based on detected node movement patterns
 
 ### 6. Routing Algorithm Example Flow
+
 **Intelligent Route Discovery Process**:
 
 ```cpp
@@ -374,20 +421,20 @@ Our routing system implements a **sophisticated multi-protocol approach** that i
 if (!route_exists(destination_id)) {
     // Analyze network conditions to select optimal strategy
     routing_strategy = select_optimal_routing_strategy(destination_id, message);
-    
+
     switch(routing_strategy) {
         case AODV_REACTIVE:
             // Multi-path AODV discovery with QoS requirements
             rreq = create_route_request_with_qos(destination_id, qos_requirements);
             broadcast_with_collision_avoidance(rreq);
             break;
-            
+
         case GEOGRAPHIC_ROUTING:
             // GPS-based forwarding with greedy/perimeter routing
             destination_gps = get_node_position(destination_id);
             geographic_forward_with_prediction(message, destination_gps);
             break;
-            
+
         case HYBRID_MULTIPATH:
             // Simultaneous discovery using multiple strategies
             discover_multiple_paths(destination_id, max_paths=3);
@@ -409,10 +456,10 @@ if (message.size() > MAX_LORA_PAYLOAD) {
 on_rreq_receive(rreq_message, sender_id) {
     if (verify_cryptographic_signature(rreq_message)) {
         rreq = deserialize_route_request_payload(rreq_message);
-        
+
         if (!is_duplicate_rreq(rreq)) {
             create_reverse_route(rreq, sender_id);
-            
+
             if (rreq.destination_id == own_node_id) {
                 // We are destination - send signed RREP
                 rrep = create_route_reply_with_crypto(rreq);
@@ -429,15 +476,17 @@ on_rreq_receive(rreq_message, sender_id) {
     }
 }
 ```
+
 if (is_destination(RREQ.dest) || have_fresh_route(RREQ.dest)) {
-    send_RREP(RREQ.source);
+send_RREP(RREQ.source);
 } else {
-    forward_RREQ();
+forward_RREQ();
 }
 
 // On RREP receive
 update_forward_route(RREP.dest, previous_hop);
 if (!is_source(RREP)) forward_RREP();
+
 ```
 
 ### 6. Best Practices
@@ -448,13 +497,16 @@ if (!is_source(RREP)) forward_RREP();
 
 ### 7. Visual Flow Example
 ```
+
 A -- B -- C -- D
 
 A wants to send to D:
+
 1. A → (RREQ) → B → (RREQ) → C → (RREQ) → D
 2. D → (RREP) → C → (RREP) → B → (RREP) → A
 3. A → (DATA) → B → C → D
-```
+
+````
 
 This approach ensures reliable, efficient routing for GPS and team data, even as the network grows or changes in the field.
 
@@ -585,36 +637,42 @@ void compute_hmac(const uint8_t* key, size_t key_len, const uint8_t* msg, size_t
     mbedtls_md_hmac_finish(&ctx, out_sig);
     mbedtls_md_free(&ctx);
 }
-```
+````
 
 **Best Practices:**
+
 - Store keys securely in ESP32 flash or use hardware security features.
 - Rotate keys periodically if possible.
 - Keep signature size minimal to reduce LoRa packet overhead.
 - Use efficient cryptographic libraries (e.g., mbedTLS, ArduinoBearSSL).
 
 **Troubleshooting:**
+
 - If nodes are not joining the mesh, check for key mismatches or signature verification errors.
 - Monitor for repeated invalid signature attempts as a sign of possible attack.
 
 ## 12. Implementation Guidelines
 
 **Hardware:**
-  - 915 MHz LoRa radios with multi-channel support recommended for gateways.
-  - ESP32 microcontrollers for all nodes.
+
+- 915 MHz LoRa radios with multi-channel support recommended for gateways.
+- ESP32 microcontrollers for all nodes.
 
 **Software:**
-  - Node firmware will be written in C++ for ESP32 (using Arduino framework or ESP-IDF).
-  - Use available LoRa libraries (e.g., RadioHead, LMIC, or ESP32 LoRa libraries).
-  - Modular design for routing, channel management, and application logic.
-  - Consider FreeRTOS tasks for concurrent operations (neighbor discovery, routing, data handling).
+
+- Node firmware will be written in C++ for ESP32 (using Arduino framework or ESP-IDF).
+- Use available LoRa libraries (e.g., RadioHead, LMIC, or ESP32 LoRa libraries).
+- Modular design for routing, channel management, and application logic.
+- Consider FreeRTOS tasks for concurrent operations (neighbor discovery, routing, data handling).
 
 **Testing:**
-  - Simulate with virtual nodes or ESP32 dev boards before field deployment.
-  - Monitor network health and adjust parameters (e.g., HELLO interval, TTL) as needed.
-  - Use serial output or onboard LEDs for debugging and status indication.
+
+- Simulate with virtual nodes or ESP32 dev boards before field deployment.
+- Monitor network health and adjust parameters (e.g., HELLO interval, TTL) as needed.
+- Use serial output or onboard LEDs for debugging and status indication.
 
 ## 13. Future Enhancements
+
 - **Mobility Support:**
   - Dynamic section reassignment for moving nodes.
 - **QoS:**
@@ -623,12 +681,15 @@ void compute_hmac(const uint8_t* key, size_t key_len, const uint8_t* msg, size_t
   - Secure firmware updates via the mesh.
 
 ## 14. References
+
 - Perkins, C. E., & Royer, E. M. (1999). Ad hoc On-Demand Distance Vector Routing.
 - LoRa Alliance Technical Documents
 - [AODV RFC 3561](https://datatracker.ietf.org/doc/html/rfc3561)
 
 ---
+
 ## 15. Glossary
+
 - **AODV (Ad hoc On-Demand Distance Vector):** A routing protocol for mobile ad hoc networks.
 - **GPS (Global Positioning System):** A satellite-based navigation system that provides location and time information.
 - **HMAC (Hash-based Message Authentication Code):** A mechanism for message authentication using a cryptographic hash function and a secret key.
@@ -647,33 +708,39 @@ Our LoRa mesh network uses Protocol Buffers for all message serialization, provi
 ### Available Protocol Buffer Schemas
 
 **Core Message Wrapper** (`/lora_mesh/v1/messages.proto`):
+
 - `LoRaMessage`: Universal message wrapper with routing, timing, and security fields
 - Supports message types: GPS updates, routing control, heartbeats, application data
 - Built-in cryptographic signature support
 
 **Routing Protocol** (`/lora_mesh/v1/routing.proto`):
+
 - `RouteRequestPayload`: AODV route discovery messages
 - `RouteReplyPayload`: Route establishment responses
 - `RouteErrorPayload`: Link failure notifications
 - Full support for sequence numbers, hop counts, and route lifetimes
 
 **Geographic Data** (`/lora_mesh/v1/geographic.proto`):
+
 - `GPSCoordinate`: Precise location data with accuracy metrics
 - `GeographicBoundary`: Area definitions and containment checks
 - Optimized for tactical and emergency use cases
 
 **Security & Node Management** (`/lora_mesh/v1/common.proto`):
+
 - `CryptographicSignature`: Multi-algorithm signing (HMAC, Ed25519, ECDSA)
 - `NodeInfo`: Device capabilities and status reporting
 - `QoSRequirements`: Service level specifications
 
 ### ESP32 Integration Ready
+
 - **nanopb 0.4.9.1 compatible**: All `.options` files tuned for ESP32 memory constraints
 - **Compilation tested**: Protocol Buffer C code generates cleanly
 - **Memory optimized**: String limits and array sizes configured for embedded use
 - **Ready for firmware integration**: Just add the generated C files to your ESP32 project
 
 ### Next Steps for Developers
+
 1. Include generated protobuf C files in your ESP32 firmware project
 2. Implement message serialization/deserialization using nanopb APIs
 3. Add LoRa radio drivers and integrate with the LoRaMessage wrapper
@@ -683,6 +750,7 @@ Our LoRa mesh network uses Protocol Buffers for all message serialization, provi
 ---
 
 ## 📚 Appendix: Example Message Format (for Techies)
+
 ```cpp
 struct GpsPacket {
     uint8_t type;        // 0x10 = GPS
@@ -698,4 +766,4 @@ struct GpsPacket {
 
 ---
 
-*For questions or support, contact the protocol designer or project lead.*
+_For questions or support, contact the protocol designer or project lead._

@@ -1,6 +1,6 @@
-/**
+﻿/**
  * @file security.h
- * @brief HMAC-SHA256 message signing and verification
+ * @brief AES-256-GCM encryption with authenticated encryption
  */
 
 #ifndef SECURITY_H
@@ -11,6 +11,11 @@
 #include <set>
 #include <vector>
 #include "protobuf_handler.h"
+
+// AES-256-GCM constants
+static constexpr size_t AES_GCM_KEY_SIZE = 32;    // 256-bit key
+static constexpr size_t AES_GCM_NONCE_SIZE = 12;  // 96-bit nonce (recommended for GCM)
+static constexpr size_t AES_GCM_TAG_SIZE = 16;    // 128-bit auth tag
 
 // Message ID tracking for replay protection
 struct SeenMessage {
@@ -25,69 +30,70 @@ public:
      * @return true if successful
      */
     static bool init();
-    
+
     /**
-     * @brief Set HMAC key (256-bit)
+     * @brief Set encryption key (256-bit)
      * @param key 32-byte key
      * @return true if successful
      */
     static bool setKey(const uint8_t* key, size_t key_len);
-    
+
     /**
-     * @brief Generate random HMAC key and store in NVS
+     * @brief Generate random key and store in NVS
      * @return true if successful
      */
     static bool generateAndStoreKey();
-    
+
     /**
-     * @brief Load HMAC key from NVS
+     * @brief Load key from NVS
      * @return true if successful
      */
     static bool loadKeyFromNVS();
-    
+
     /**
-     * @brief Sign a LoRaMessage
-     * @param msg Message to sign (signature field will be populated)
+     * @brief Encrypt entire serialized message (full confidentiality)
+     * @param plaintext Serialized LoRaMessage
+     * @param plaintext_len Length of serialized message
+     * @param ciphertext Output buffer [nonce][ciphertext][tag]
+     * @param ciphertext_len Output length
      * @return true if successful
+     *
+     * Wire format: [12-byte nonce][encrypted protobuf][16-byte GCM tag]
+     * GCM tag provides authentication - no separate signature needed
      */
-    static bool signMessage(LoRaMessage& msg);
-    
+    static bool encryptMessage(const uint8_t* plaintext, size_t plaintext_len,
+                               uint8_t* ciphertext, size_t* ciphertext_len);
+
     /**
-     * @brief Verify a LoRaMessage signature
-     * @param msg Message to verify
-     * @return true if signature is valid
+     * @brief Decrypt entire message (full confidentiality)
+     * @param ciphertext Received encrypted blob [nonce][ciphertext][tag]
+     * @param ciphertext_len Length of encrypted data
+     * @param plaintext Output buffer for decrypted protobuf
+     * @param plaintext_len Output length
+     * @return true if successful and GCM authentication passed
      */
-    static bool verifyMessage(const LoRaMessage& msg);
-    
-    /**
-     * @brief Compute HMAC-SHA256
-     * @param data Input data
-     * @param data_len Length of data
-     * @param signature Output buffer (32 bytes)
-     * @return true if successful
-     */
-    static bool computeHMAC(const uint8_t* data, size_t data_len, uint8_t* signature);
-    
+    static bool decryptMessage(const uint8_t* ciphertext, size_t ciphertext_len,
+                               uint8_t* plaintext, size_t* plaintext_len);
+
     /**
      * @brief Check if message is duplicate/replay
-     * Uses message_id + timestamp for deduplication (sequence numbers not used)
      * @param message_id Unique message identifier
      * @param timestamp Message timestamp
      * @return true if message is valid (not duplicate)
      */
     static bool checkReplayProtection(const String& message_id, uint64_t timestamp);
-    
+
     /**
      * @brief Prune old message IDs from tracking (call periodically)
      */
     static void pruneOldMessages();
 
 private:
-    static uint8_t hmac_key[32];
+    static uint8_t encryption_key[32];  // AES-256-GCM key
     static bool initialized;
     static std::vector<SeenMessage> seen_messages;  // Recently seen message IDs
     static std::map<String, uint64_t> last_seen_timestamp;  // Per-node last timestamp (optional)
-    
+
     static constexpr size_t MAX_SEEN_MESSAGES = 100;  // Limit memory usage
     static constexpr uint64_t MESSAGE_EXPIRY_MS = 300000;  // 5 minutes
 };
