@@ -169,6 +169,55 @@ pio device monitor -b 115200
 
 See [firmware/BUILD.md](firmware/BUILD.md) for detailed build instructions and [firmware/README.md](firmware/README.md) for complete documentation.
 
+## Firmware: Features & Quick Usage
+
+- **Core advancements**: AODV on-demand routing, HMAC-SHA256 message authentication, GPS management (hardware/static/manual), text messaging, serial CLI, and multi-board support (LilyGO T3S3, T-Deck).
+- **Protocol Buffers**: nanopb-generated schemas live in `/lora_mesh/v1/` and are tuned for ESP32 memory; protobuf integration is ready to be wired into the firmware.
+
+### Quick Start (firmware)
+```
+cd firmware/
+pip install platformio
+pio run -e t3s3-gateway -t upload
+pio device monitor -b 115200
+```
+
+### Useful Serial Commands
+- `set_manual_gps <lat> <lon>` — set manual GPS coordinates for testing
+- `set_gps_mode <0|1|2>` — set GPS mode (0=hardware, 1=static, 2=manual)
+- `send_gps` / `show_gps` — broadcast or display current GPS
+- `send_msg <dest> <text>` — send text message (use `BROADCAST` to send to all)
+- `show_routes`, `show_neighbors`, `show_stats` — inspect routing and link state
+
+### Testing Without GPS
+Use:
+```
+set_manual_gps 37.7749 -122.4194
+set_gps_mode 2
+show_gps
+```
+to emulate a GPS fix for development and simulation.
+
+### Multi-Radio / Multi-Hop Testing
+- 2-Node direct: set node IDs, manual GPS, `send_gps` then `send_msg` between nodes.
+- 3+ Node multi-hop: initiate `send_msg` to a non-adjacent node and verify intermediate nodes forward messages (look for "Message forwarded" logs).
+
+### Build Environments & Targets
+- Provided PlatformIO environments include `t3s3-gateway`, `t3s3-standalone`, `tdeck-lora`. Use `pio run -e <env>` per device.
+
+### Security & Key Management
+- First boot generates a unique node ID and HMAC key. Use `generate_key` and copy the HMAC key (HEX) to all nodes. Keys are stored in NVS; mismatched keys will cause signature verification failures and dropped messages.
+
+### Troubleshooting (common)
+- LoRa init failure: check SPI and power, verify SX126x BUSY/DIO1 wiring.
+- No GPS fix: try manual mode or move outdoors; allow 30–60s for acquisition.
+- No neighbors: verify matching frequency, HMAC key, and TX power; use `show_stats` for RX errors.
+
+### Next Steps (short)
+- Integrate nanopb encode/decode into `protobuf_handler.cpp` and replace placeholder serialization.
+- Improve TFT UI (roster, inbox) and T-Deck keyboard input.
+- Add Python backend integration for gateways and live visualization.
+
 ---
 
 # Technical Deep Dive (For Developers)
