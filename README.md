@@ -1,33 +1,33 @@
-# LoRa Mesh GPS Team Awareness Kit (TAK)
+﻿# LoRa Mesh GPS Team Awareness Kit (TAK)
 
 ---
 
-## 🚀 Start Here: What Is This?
+## ðŸš€ Start Here: What Is This?
 
-A simple, secure, and robust way for your team to share live GPS locations—no cell towers, no Wi-Fi, just small radios and a map! Designed for field teams (airsoft, SAR, outdoor evenThis section explains our comprehensive routing system that combines multiple protocols for optimal performance in diverse LoRa mesh scenarios. The system has been designed to handle high mobility, varying link quality, energy constraints, and network partitions.s, etc.) who need to know where everyone is, even in remote areas.
+A simple, secure, and robust way for your team to share live GPS locationsâ€”no cell towers, no Wi-Fi, just small radios and a map! Designed for field teams (airsoft, SAR, outdoor evenThis section explains our comprehensive routing system that combines multiple protocols for optimal performance in diverse LoRa mesh scenarios. The system has been designed to handle high mobility, varying link quality, energy constraints, and network partitions.s, etc.) who need to know where everyone is, even in remote areas.
 
 ---
 
-## 🗺️ How It Works (In Plain English)
+## ðŸ—ºï¸ How It Works (In Plain English)
 
 - Each team member carries a small device (ESP32 + LoRa radio + GPS module).
 - The device gets your GPS position and sends it out over the air.
-- All devices form a mesh network, relaying each other’s locations so everyone stays in sync.
-- You can see your teammates’ positions on a map display, phone, or even a simple screen.
+- All devices form a mesh network, relaying each otherâ€™s locations so everyone stays in sync.
+- You can see your teammatesâ€™ positions on a map display, phone, or even a simple screen.
 
 ---
 
-## 🌟 Key Features
+## ðŸŒŸ Key Features
 
 - **Live Team Map:** See where everyone is, in real time.
-- **No Infrastructure Needed:** Works anywhere—forests, mountains, urban, or rural.
+- **No Infrastructure Needed:** Works anywhereâ€”forests, mountains, urban, or rural.
 - **Secure:** All messages are signed, so only your team can join and see locations.
 - **Scalable:** Supports 100+ users with smart routing to avoid radio overload.
 - **Flexible:** Use for games, search and rescue, events, or any team activity.
 
 ---
 
-## 🏁 Quick Start: Building Your Mesh
+## ðŸ Quick Start: Building Your Mesh
 
 1. **Assemble Hardware:** ESP32 + LoRa + GPS for each teammate.
 2. **Review Protocol Definitions:** Check the `/lora_mesh/v1/` folder for Protocol Buffer message definitions.
@@ -37,7 +37,7 @@ A simple, secure, and robust way for your team to share live GPS locations—no 
 
 ---
 
-## 🛠️ Actionable Implementation Plan
+## ðŸ› ï¸ Actionable Implementation Plan
 
 Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, testable sequence. Each phase builds on the last, ensuring a robust and maintainable system.
 
@@ -47,7 +47,7 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
 - Flash basic firmware: blink LED, read GPS, send/receive raw LoRa packets.
 - Validate radio range and GPS accuracy in your environment.
 
-### Phase 2: Message Serialization with Protobufs ✅ IMPLEMENTED
+### Phase 2: Message Serialization with Protobufs âœ… IMPLEMENTED
 
 - **DONE**: Protocol Buffer definitions complete in `/lora_mesh/v1/` directory
   - `messages.proto`: Core LoRaMessage wrapper and routing control
@@ -108,23 +108,23 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
 
 ---
 
-## 🔍 How Do I See the Map?
+## ðŸ” How Do I See the Map?
 
 - Connect your device to a phone, tablet, or small screen.
-- Use a custom app, TAK/ATAK, or even a web map to view everyone’s positions.
+- Use a custom app, TAK/ATAK, or even a web map to view everyoneâ€™s positions.
 - Alerts can warn you if someone goes out of bounds or loses contact.
 
 ---
 
-## 🔒 How Is It Secure?
+## ðŸ”’ How Is It Secure?
 
 - Only devices with the right digital keys can join and share locations.
-- All messages are signed, so you know they’re real.
-- No data leaves the mesh—no cloud, no tracking, just your team.
+- All messages are signed, so you know theyâ€™re real.
+- No data leaves the meshâ€”no cloud, no tracking, just your team.
 
 ---
 
-## 🤔 Why Use This?
+## ðŸ¤” Why Use This?
 
 - Stay safe and coordinated in the field.
 - No monthly fees or cell coverage required.
@@ -132,9 +132,9 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
 
 ---
 
-## 📋 Current Implementation Status
+## ðŸ“‹ Current Implementation Status
 
-### ✅ What's Implemented
+### âœ… What's Implemented
 
 - **Protocol Buffer Definitions**: Complete message format definitions in `/lora_mesh/v1/`
 - **ESP32 Firmware**: Working C++ implementation in `/firmware/` directory
@@ -146,7 +146,7 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
   - Multi-board support (LilyGO T3S3, T-Deck)
 - **Python Simulation**: Working network simulator in `/routing_simulation/`
 
-### 🔧 What's Next
+### ðŸ”§ What's Next
 
 - **Protocol Buffer Integration**: Replace placeholder serialization with actual nanopb
 - **Field Testing**: Deploy 6-radio mesh for real-world validation
@@ -156,7 +156,7 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
 
 **Bottom line**: We have working firmware! Ready for hardware testing with 6 LilyGO radios.
 
-## 🚀 Getting Started with Firmware
+## ðŸš€ Getting Started with Firmware
 
 ### Quick Start
 
@@ -203,14 +203,14 @@ This protocol is tailored for a GPS-based Forward Team Awareness Kit (TAK), enab
 
 ---
 
-## GPS Data Collection and Transmission (with Protocol Buffers) ✅ SCHEMA IMPLEMENTED
+## GPS Data Collection and Transmission (with Protocol Buffers) âœ… SCHEMA IMPLEMENTED
 
 - **GPS Module Integration:** Each ESP32 node will be equipped with a GPS module (e.g., u-blox, NEO-6M) to obtain latitude, longitude, altitude, and timestamp.
 - **Data Packetization:** GPS data will be packaged into Protocol Buffer messages defined in `/lora_mesh/v1/geographic.proto` and transmitted using the LoRaMessage wrapper from `/lora_mesh/v1/messages.proto`.
-- **Update Rate:** The update interval can be configured (e.g., every 2–10 seconds) to balance freshness and network load.
+- **Update Rate:** The update interval can be configured (e.g., every 2â€“10 seconds) to balance freshness and network load.
 - **Implementation Status:** Protocol Buffer schemas are complete and ready for ESP32 integration.
 
-## GPS Data Protocol Buffer Message Format ✅ IMPLEMENTED
+## GPS Data Protocol Buffer Message Format âœ… IMPLEMENTED
 
 Our actual GPS/location messages use the protocol buffer definitions from the `/lora_mesh/v1/` directory:
 
@@ -279,11 +279,11 @@ gps_data.timestamp = current_time();
 - **Integration:** Data can be exported to TAK/ATAK, QGIS, or custom mapping apps for advanced visualization.
 - **Alerts:** The system can generate alerts for out-of-bounds, lost comms, or proximity events.
 
-## Security and Privacy ✅ SCHEMA IMPLEMENTED
+## Security and Privacy âœ… SCHEMA IMPLEMENTED
 
 - All GPS/location packets will be signed using the CryptographicSignature protobuf message to prevent spoofing and tampering.
 - Only authenticated nodes can participate and view team locations.
-- Location data is not sent to the cloud or external servers—mesh only.
+- Location data is not sent to the cloud or external serversâ€”mesh only.
 - Signature verification and cryptographic protocols defined in `/lora_mesh/v1/common.proto`.
 
 ---
@@ -300,7 +300,7 @@ gps_data.timestamp = current_time();
 - **Neighbor Discovery:** Nodes periodically broadcast signed 'HELLO' beacons to discover and authenticate direct neighbors, ensuring only legitimate nodes are added to routing tables.
 - **Section Assignment:** Nodes are assigned to sections based on location or function.
 
-## 4. Routing Protocol (AODV for LoRa) ✅ SCHEMA IMPLEMENTED
+## 4. Routing Protocol (AODV for LoRa) âœ… SCHEMA IMPLEMENTED
 
 - **On-Demand Routing:** Routes are established only when needed, minimizing control traffic.
 - **Routing Table:** Each node maintains a table of known routes (destination, next hop, hop count, sequence number, section).
@@ -311,7 +311,7 @@ gps_data.timestamp = current_time();
 
 ## In-Depth: Routing Algorithm (Hybrid Multi-Protocol System)
 
-This section explains how the mesh finds and maintains routes, how messages travel, and how the protocol is optimized for LoRa’s unique constraints.
+This section explains how the mesh finds and maintains routes, how messages travel, and how the protocol is optimized for LoRaâ€™s unique constraints.
 
 ### 1. Hybrid Routing Architecture - Comprehensive Design
 
@@ -502,9 +502,9 @@ A -- B -- C -- D
 
 A wants to send to D:
 
-1. A → (RREQ) → B → (RREQ) → C → (RREQ) → D
-2. D → (RREP) → C → (RREP) → B → (RREP) → A
-3. A → (DATA) → B → C → D
+1. A â†’ (RREQ) â†’ B â†’ (RREQ) â†’ C â†’ (RREQ) â†’ D
+2. D â†’ (RREP) â†’ C â†’ (RREP) â†’ B â†’ (RREP) â†’ A
+3. A â†’ (DATA) â†’ B â†’ C â†’ D
 
 ````
 
@@ -701,7 +701,7 @@ void compute_hmac(const uint8_t* key, size_t key_len, const uint8_t* msg, size_t
 
 ---
 
-## 16. Protocol Buffer Implementation Details ✅ COMPLETED
+## 16. Protocol Buffer Implementation Details âœ… COMPLETED
 
 Our LoRa mesh network uses Protocol Buffers for all message serialization, providing efficient, extensible, and type-safe communication. All protocol definitions are complete and ready for ESP32 implementation.
 
@@ -749,7 +749,7 @@ Our LoRa mesh network uses Protocol Buffers for all message serialization, provi
 
 ---
 
-## 📚 Appendix: Example Message Format (for Techies)
+## ðŸ“š Appendix: Example Message Format (for Techies)
 
 ```cpp
 struct GpsPacket {
@@ -767,3 +767,4 @@ struct GpsPacket {
 ---
 
 _For questions or support, contact the protocol designer or project lead._
+
