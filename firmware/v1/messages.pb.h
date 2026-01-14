@@ -107,7 +107,7 @@ typedef enum _lora_mesh_v1_FragmentFlags {
 } lora_mesh_v1_FragmentFlags;
 
 /* Struct definitions */
-typedef PB_BYTES_ARRAY_T(256) lora_mesh_v1_LoRaMessage_payload_t;
+typedef PB_BYTES_ARRAY_T(512) lora_mesh_v1_LoRaMessage_payload_t;
 /* Main message wrapper for all network communications */
 typedef struct _lora_mesh_v1_LoRaMessage {
     char message_id[32]; /* Globally unique message identifier */
@@ -185,7 +185,7 @@ typedef struct _lora_mesh_v1_HelloPayload {
 
 /* Text message payload */
 typedef struct _lora_mesh_v1_TextMessagePayload {
-    char text[256]; /* Message text content */
+    char text[512]; /* Message text content */
     char sender_callsign[16]; /* Human-readable sender ID */
     lora_mesh_v1_MessagePriority priority; /* Message priority */
     bool requires_ack; /* Acknowledgment required */
@@ -823,13 +823,13 @@ extern const pb_msgdesc_t lora_mesh_v1_VoicePayload_msg;
 #define lora_mesh_v1_FragmentPayload_size        148
 #define lora_mesh_v1_GPSUpdatePayload_size       92
 #define lora_mesh_v1_KeyExchangePayload_size     374
-#define lora_mesh_v1_LoRaMessage_size            519
+#define lora_mesh_v1_LoRaMessage_size            775
 #define lora_mesh_v1_NetworkDiscoveryPayload_size 1787
 #define lora_mesh_v1_SignatureVerificationRequestPayload_size 467
 #define lora_mesh_v1_SignatureVerificationResponsePayload_size 334
 #define lora_mesh_v1_SyncPosition_size           79
 #define lora_mesh_v1_SyncTextMessage_size        191
-#define lora_mesh_v1_TextMessagePayload_size     285
+#define lora_mesh_v1_TextMessagePayload_size     541
 #define lora_mesh_v1_VoicePayload_size           167
 #if defined(lora_mesh_v1_NodeCertificate_size)
 #define lora_mesh_v1_CertificateResponsePayload_size (183 + lora_mesh_v1_NodeCertificate_size)

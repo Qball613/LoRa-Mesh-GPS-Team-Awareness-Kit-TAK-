@@ -3,7 +3,7 @@
 
 lora_mesh.v1.SetNodeIDRequest.node_id        max_size:16
 lora_mesh.v1.SendMessageRequest.destination  max_size:16
-lora_mesh.v1.SendMessageRequest.text         max_size:200
+lora_mesh.v1.SendMessageRequest.text         max_size:512
 lora_mesh.v1.SendEmergencyRequest.description max_size:100
 lora_mesh.v1.PingRequest.destination         max_size:16
 
@@ -23,7 +23,7 @@ lora_mesh.v1.CommandResult.message_id        max_size:36
 
 lora_mesh.v1.MessageReceivedEvent.from       max_size:16
 lora_mesh.v1.MessageReceivedEvent.message_id max_size:36
-lora_mesh.v1.MessageReceivedEvent.text       max_size:200
+lora_mesh.v1.MessageReceivedEvent.text       max_size:512
 
 lora_mesh.v1.GPSReceivedEvent.node_id        max_size:16
 

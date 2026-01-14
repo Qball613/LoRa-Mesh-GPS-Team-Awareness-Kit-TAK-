@@ -45,7 +45,13 @@ void handleReceivedTextMessage(const LoRaMessage& msg);
 void setup() {
     // Initialize serial console
     Serial.begin(SERIAL_BAUD_RATE);
-    delay(1000); // Wait for serial
+    Serial.setTxTimeoutMs(0);  // Non-blocking TX - don't hang if USB not connected
+    
+    // Wait for serial with timeout - don't block if no USB connected
+    uint32_t serial_timeout = millis() + 2000;
+    while (!Serial && millis() < serial_timeout) {
+        delay(10);
+    }
 
     LOG_I("========================================");
     LOG_I("LoRa Mesh GPS Team Awareness Kit");
@@ -65,15 +71,16 @@ void setup() {
     LOG_I("");
 
     // ================================================================
-    // ERASE NVS for testing (clear all stored mesh state)
+    // NVS persistence - mesh state survives reboots
+    // Uncomment below to erase NVS for clean testing
     // ================================================================
-    LOG_W("Erasing NVS for clean test state...");
-    Preferences prefs;
-    prefs.begin("mesh", false);
-    prefs.clear();
-    prefs.end();
-    delay(500); // Give time for erase
-    LOG_W("NVS erased");
+    // LOG_W("Erasing NVS for clean test state...");
+    // Preferences prefs;
+    // prefs.begin("mesh", false);
+    // prefs.clear();
+    // prefs.end();
+    // delay(500);
+    // LOG_W("NVS erased");
 
     // ================================================================
     // Initialize Node ID
@@ -172,9 +179,9 @@ void setup() {
     loraRadio.startListening();
     LOG_I("LoRa radio in continuous receive mode");
 
-    // Send initial HELLO beacon to announce presence
-    routingEngine.sendHelloBeacon();
-    LOG_I("Initial HELLO beacon sent");
+    // Initiate network join to announce presence and trigger version sync
+    routingEngine.initiateNetworkJoin();
+    LOG_I("Network join initiated");
 #endif
 
     // Initialize timing

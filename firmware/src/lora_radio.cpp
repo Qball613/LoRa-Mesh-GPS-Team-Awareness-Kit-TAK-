@@ -427,7 +427,7 @@ bool LoRaRadio::receive(LoRaMessage& msg, int8_t& rssi) {
         float snr = radio->getSNR();
         rssi = rssi_temp;
 
-        LOG_D("RX: %d bytes, RSSI=%d dBm, SNR=%.1f dB", msg_len, rssi, snr);
+        LOG_I("RX: %d bytes, RSSI=%d dBm, SNR=%.1f dB", msg_len, rssi, snr);
 
         // Echo detection: Check if this is our own transmission bouncing back
         // This happens with high TX power or in enclosed spaces
@@ -492,7 +492,8 @@ bool LoRaRadio::receive(LoRaMessage& msg, int8_t& rssi) {
         }
 
         stats.rx_count++;
-        LOG_D("RX OK: type=%d, src=%s, dst=%s", msg.message_type, msg.source_id, msg.destination_id);
+        LOG_I("RX: type=%d, src=%s, dst=%s, rssi=%d", 
+              msg.message_type, msg.source_id, msg.destination_id, rssi);
         return true;
 }
 

@@ -17,10 +17,10 @@
 *.revoked_key_id max_size:16
 
 # LoRaMessage payload (variable-length serialized content)
-lora_mesh.v1.LoRaMessage.payload max_size:256
+lora_mesh.v1.LoRaMessage.payload max_size:512
 
 # Text message limits
-lora_mesh.v1.TextMessagePayload.text max_size:256
+lora_mesh.v1.TextMessagePayload.text max_size:512
 lora_mesh.v1.TextMessagePayload.sender_callsign max_size:16
 
 # Control and discovery limits

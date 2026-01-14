@@ -146,6 +146,8 @@ void RoutingEngine::storeMessage(const LoRaMessage& msg) {
         message_history.pop_back();
     }
 
+    LOG_I("Stored message in history: id=%s, type=%d, history_size=%d",
+          msg.message_id, msg.message_type, message_history.size());
     state_dirty = true;
 }
 
@@ -163,6 +165,8 @@ void RoutingEngine::setReceiveCallback(std::function<void(const LoRaMessage&)> c
 
 bool RoutingEngine::processMessage(const LoRaMessage& msg, int8_t rssi) {
     stats.messages_received++;
+
+    LOG_I("processMessage: type=%d from=%s rssi=%d", msg.message_type, msg.source_id, rssi);
 
     // Ignore our own messages (radio echo/multipath)
     String source_id = msg.source_id;
@@ -385,8 +389,8 @@ void RoutingEngine::sendHelloBeacon() {
         if (transmit_callback) {
             stats.messages_sent++;
             transmit_callback(msg);
-            LOG_D("HELLO beacon sent (seq=%u, size=%u, hasGPS=%d)",
-                  hello.hello_sequence, payload_len, hello.node_info.has_position);
+            LOG_I("HELLO beacon sent (seq=%u, mesh_v=%llu, hasGPS=%d)",
+                  hello.hello_sequence, mesh_version, hello.node_info.has_position);
         }
     }
 }
@@ -471,6 +475,9 @@ void RoutingEngine::processHello(const LoRaMessage& msg, int8_t rssi) {
     String node_id = strlen(hello.node_info.node_id) > 0 ?
                      String(hello.node_info.node_id) : String(msg.source_id);
 
+    LOG_I("HELLO from %s: their_mesh_v=%llu, our_mesh_v=%llu, our_history=%d",
+          node_id.c_str(), hello.mesh_version, mesh_version, message_history.size());
+
     // Helper lambda to check if we should push content (rate limited)
     auto shouldPushContent = [&]() -> bool {
         uint64_t now = getCurrentTime();
@@ -515,7 +522,12 @@ void RoutingEngine::processHello(const LoRaMessage& msg, int8_t rssi) {
         }
     } else {
         // Node sent mesh_version=0, likely just booted - push our content (rate limited)
-        if (shouldPushContent()) {
+        // But ONLY if we actually have content (mesh_version > 0)
+        bool should_push = shouldPushContent();
+        LOG_I("Fresh node %s: our_mesh_v=%llu, should_push=%s, history=%d",
+              node_id.c_str(), mesh_version, should_push ? "yes" : "no", message_history.size());
+        
+        if (mesh_version > 0 && should_push) {
             LOG_I("Node %s has mesh_version=0 (fresh boot) - pushing content sync", node_id.c_str());
             delay(100 + (esp_random() % 150));
 
@@ -527,7 +539,8 @@ void RoutingEngine::processHello(const LoRaMessage& msg, int8_t rssi) {
             sendContentSync(node_id, 0);  // Full sync for fresh boot
             recordPush();
         } else {
-            LOG_D("Skipping content push to %s (rate limited)", node_id.c_str());
+            LOG_I("Skipping push to %s: mesh_v=%llu, should_push=%s", 
+                  node_id.c_str(), mesh_version, should_push ? "yes" : "no");
         }
     }
 
@@ -604,6 +617,22 @@ void RoutingEngine::processNetworkDiscovery(const LoRaMessage& msg, int8_t rssi)
                        discovery.discovered_nodes[i].rssi);
             LOG_D("Learned route to %s via %s (2 hops)", node_id.c_str(), originator_id.c_str());
         }
+    }
+
+    // Count neighbors we know about OTHER than the requester
+    size_t useful_neighbors = 0;
+    for (const auto& pair : neighbor_table) {
+        if (pair.second.is_active && pair.first != originator_id) {
+            useful_neighbors++;
+        }
+    }
+
+    // Don't respond if we have nothing useful to share:
+    // - No content (mesh_version == 0) AND
+    // - No neighbors other than the one asking
+    if (mesh_version == 0 && useful_neighbors == 0) {
+        LOG_D("Skipping discovery response - no unique content or neighbors to share");
+        return;
     }
 
     // Dual responder strategy: only respond if we're best or worst RSSI
@@ -816,9 +845,14 @@ void RoutingEngine::sendContentSync(const String& target_id, uint64_t neighbor_m
     }
 
     // 3. Add text messages (decode from stored messages)
+    LOG_D("ContentSync: message_history has %d entries, mesh_version=%llu",
+          message_history.size(), mesh_version);
     size_t max_messages = full_sync ? 5 : std::min((size_t)version_diff, (size_t)3);
     for (const auto& stored_msg : message_history) {
         if (sync.messages_count >= max_messages) break;
+
+        LOG_D("  Checking stored msg: type=%d, id=%s, payload_size=%d",
+              stored_msg.message_type, stored_msg.message_id, stored_msg.payload.size);
 
         if (stored_msg.message_type == MESSAGE_TYPE_TEXT_MESSAGE ||
             stored_msg.message_type == MESSAGE_TYPE_EMERGENCY) {
@@ -827,11 +861,14 @@ void RoutingEngine::sendContentSync(const String& target_id, uint64_t neighbor_m
             lora_mesh_v1_TextMessagePayload text_payload = lora_mesh_v1_TextMessagePayload_init_zero;
             pb_istream_t stream = pb_istream_from_buffer(stored_msg.payload.bytes, stored_msg.payload.size);
             if (pb_decode(&stream, lora_mesh_v1_TextMessagePayload_fields, &text_payload)) {
+                LOG_I("  Decoded text message: '%s'", text_payload.text);
                 lora_mesh_v1_SyncTextMessage& msg = sync.messages[sync.messages_count++];
                 ProtobufHandler::copyString(msg.message_id, sizeof(msg.message_id), stored_msg.message_id);
                 ProtobufHandler::copyString(msg.source_id, sizeof(msg.source_id), stored_msg.source_id);
                 ProtobufHandler::copyString(msg.text, sizeof(msg.text), text_payload.text);
                 msg.timestamp = stored_msg.timestamp;
+            } else {
+                LOG_E("  Failed to decode TextMessagePayload from stored message");
             }
         }
     }
@@ -861,6 +898,12 @@ void RoutingEngine::sendContentSync(const String& target_id, uint64_t neighbor_m
 
     LOG_I("ContentSync payload: %d positions, %d messages, %d roster entries",
           sync.positions_count, sync.messages_count, sync.roster_count);
+
+    // Don't send empty or roster-only syncs - waste of airtime
+    if (sync.positions_count == 0 && sync.messages_count == 0) {
+        LOG_D("Skipping ContentSync - no positions or messages to sync");
+        return;
+    }
 
     // Encode the sync payload
     uint8_t payload_buf[1024];  // Large enough for full sync
@@ -2098,6 +2141,11 @@ bool RoutingEngine::sendFragmented(const String& dest_id, MessageType msg_type,
                 return false;  // Abort on failure - partial streams are useless
             }
             stats.messages_sent++;
+
+            // No inter-fragment delay needed:
+            // - Radio has CAD (Channel Activity Detection) before each TX
+            // - Receiver buffers fragments in RAM
+            // - Adding delays just opens window for other nodes to steal channel
         }
     }
 

@@ -525,18 +525,21 @@ void SerialProtocol::handleSendMessage(uint32_t request_id, const lora_mesh_v1_S
         return;
     }
     
+    // Acknowledge receipt immediately - don't block waiting for TX
+    sendResult(request_id, true);
+    
     // Create TextMessagePayload
     lora_mesh_v1_TextMessagePayload txt = lora_mesh_v1_TextMessagePayload_init_zero;
     ProtobufHandler::copyString(txt.text, sizeof(txt.text), text);
     ProtobufHandler::copyString(txt.sender_callsign, sizeof(txt.sender_callsign), NodeID::getNodeID());
     txt.priority = PRIORITY_ROUTINE;
     
-    // Encode payload
-    uint8_t payload_buf[256];
+    // Encode payload - buffer must be large enough for max text + protobuf overhead
+    uint8_t payload_buf[600];
     size_t payload_len = ProtobufHandler::encodePayload(txt, payload_buf, sizeof(payload_buf));
     
     if (payload_len == 0) {
-        sendResult(request_id, false, "Failed to encode message");
+        LOG_E("Failed to encode message payload");
         return;
     }
     
@@ -550,9 +553,9 @@ void SerialProtocol::handleSendMessage(uint32_t request_id, const lora_mesh_v1_S
     }
     
     if (routing_->sendMessage(dest, MESSAGE_TYPE_TEXT_MESSAGE, payload, PRIORITY_ROUTINE)) {
-        sendResult(request_id, true);
+        LOG_I("Message sent to '%s': %s", dest.c_str(), text.c_str());
     } else {
-        sendResult(request_id, false, "Failed to send message");
+        LOG_E("Failed to send message via routing engine");
     }
 }
 

@@ -62,7 +62,7 @@ typedef struct _lora_mesh_v1_SetNodeIDRequest {
 
 typedef struct _lora_mesh_v1_SendMessageRequest {
     char destination[16]; /* Node ID or "BROADCAST" */
-    char text[200];
+    char text[512];
 } lora_mesh_v1_SendMessageRequest;
 
 typedef struct _lora_mesh_v1_SendGPSRequest {
@@ -179,7 +179,7 @@ typedef struct _lora_mesh_v1_CommandResult {
 typedef struct _lora_mesh_v1_MessageReceivedEvent {
     char from[16];
     char message_id[36];
-    char text[200];
+    char text[512];
     uint64_t timestamp;
     bool is_broadcast;
 } lora_mesh_v1_MessageReceivedEvent;
@@ -791,18 +791,18 @@ extern const pb_msgdesc_t lora_mesh_v1_LogEvent_msg;
 #define lora_mesh_v1_GetStatsResponse_size       88
 #define lora_mesh_v1_JoinRequest_size            0
 #define lora_mesh_v1_LogEvent_size               215
-#define lora_mesh_v1_MessageReceivedEvent_size   269
+#define lora_mesh_v1_MessageReceivedEvent_size   581
 #define lora_mesh_v1_NeighborChangedEvent_size   106
 #define lora_mesh_v1_PingRequest_size            17
 #define lora_mesh_v1_RosterEntry_size            108
 #define lora_mesh_v1_RouteEntry_size             62
 #define lora_mesh_v1_SendEmergencyRequest_size   103
 #define lora_mesh_v1_SendGPSRequest_size         0
-#define lora_mesh_v1_SendMessageRequest_size     219
+#define lora_mesh_v1_SendMessageRequest_size     531
 #define lora_mesh_v1_SerialPacket_size           3539
 #define lora_mesh_v1_SetGPSRequest_size          53
 #define lora_mesh_v1_SetNodeIDRequest_size       17
-#define lora_mesh_v1_ToDevice_size               223
+#define lora_mesh_v1_ToDevice_size               535
 
 #ifdef __cplusplus
 } /* extern "C" */

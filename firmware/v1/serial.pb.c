@@ -9,7 +9,7 @@
 PB_BIND(lora_mesh_v1_SerialPacket, lora_mesh_v1_SerialPacket, 2)
 
 
-PB_BIND(lora_mesh_v1_ToDevice, lora_mesh_v1_ToDevice, AUTO)
+PB_BIND(lora_mesh_v1_ToDevice, lora_mesh_v1_ToDevice, 2)
 
 
 PB_BIND(lora_mesh_v1_FromDevice, lora_mesh_v1_FromDevice, 2)
@@ -39,7 +39,7 @@ PB_BIND(lora_mesh_v1_SetGPSRequest, lora_mesh_v1_SetGPSRequest, AUTO)
 PB_BIND(lora_mesh_v1_SetNodeIDRequest, lora_mesh_v1_SetNodeIDRequest, AUTO)
 
 
-PB_BIND(lora_mesh_v1_SendMessageRequest, lora_mesh_v1_SendMessageRequest, AUTO)
+PB_BIND(lora_mesh_v1_SendMessageRequest, lora_mesh_v1_SendMessageRequest, 2)
 
 
 PB_BIND(lora_mesh_v1_SendGPSRequest, lora_mesh_v1_SendGPSRequest, AUTO)
