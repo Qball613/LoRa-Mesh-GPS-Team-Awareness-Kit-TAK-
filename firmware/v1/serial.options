@@ -1,0 +1,33 @@
+# Serial protocol nanopb options
+# Reuses types from common.proto so fewer options needed here
+
+lora_mesh.v1.SetNodeIDRequest.node_id        max_size:16
+lora_mesh.v1.SendMessageRequest.destination  max_size:16
+lora_mesh.v1.SendMessageRequest.text         max_size:200
+lora_mesh.v1.SendEmergencyRequest.description max_size:100
+lora_mesh.v1.PingRequest.destination         max_size:16
+
+lora_mesh.v1.GetInfoResponse.firmware_version max_size:16
+lora_mesh.v1.GetInfoResponse.protocol_version max_size:8
+
+lora_mesh.v1.GetNeighborsResponse.neighbors  max_count:16
+
+lora_mesh.v1.RouteEntry.destination          max_size:16
+lora_mesh.v1.RouteEntry.next_hop             max_size:16
+lora_mesh.v1.GetRoutesResponse.routes        max_count:32
+
+lora_mesh.v1.GetRosterResponse.roster        max_count:32
+
+lora_mesh.v1.CommandResult.error             max_size:100
+lora_mesh.v1.CommandResult.message_id        max_size:36
+
+lora_mesh.v1.MessageReceivedEvent.from       max_size:16
+lora_mesh.v1.MessageReceivedEvent.message_id max_size:36
+lora_mesh.v1.MessageReceivedEvent.text       max_size:200
+
+lora_mesh.v1.GPSReceivedEvent.node_id        max_size:16
+
+lora_mesh.v1.EmergencyReceivedEvent.from     max_size:16
+lora_mesh.v1.EmergencyReceivedEvent.description max_size:100
+
+lora_mesh.v1.LogEvent.message                max_size:200

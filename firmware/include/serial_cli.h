@@ -1,6 +1,10 @@
 ﻿/**
  * @file serial_cli.h
  * @brief Serial command-line interface for testing and control
+ *
+ * This CLI provides human-readable commands for interactive use.
+ * For machine-parseable API, use SerialProtocol which handles
+ * SLIP-framed protobuf messages (similar to Meshtastic).
  */
 
 #ifndef SERIAL_CLI_H
@@ -10,6 +14,7 @@
 #include <functional>
 #include "routing_engine.h"
 #include "gps_manager.h"
+#include "serial_protocol.h"
 
 class SerialCLI {
 public:
@@ -36,6 +41,11 @@ public:
     void setGPSManager(GPSManager* gps);
 
     /**
+     * @brief Get the Serial Protocol instance for event emission
+     */
+    SerialProtocol* getProtocol() { return &serial_protocol_; }
+
+    /**
      * @brief Print welcome message
      */
     void printWelcome();
@@ -48,6 +58,7 @@ public:
 private:
     RoutingEngine* routing_engine;
     GPSManager* gps_manager;
+    SerialProtocol serial_protocol_;
 
     String command_buffer;
 

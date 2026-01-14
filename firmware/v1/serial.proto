@@ -1,0 +1,219 @@
+syntax = "proto3";
+
+package lora_mesh.v1;
+
+import "v1/common.proto";
+import "v1/messages.proto";
+
+// ================================================================
+// Serial Protocol for Host Communication
+// Uses SLIP framing: 0xC0 START/END, 0xDB ESC, 0xDC ESC_END, 0xDD ESC_ESC
+// Reuses existing types from common.proto and messages.proto
+// ================================================================
+
+// Wrapper for all serial communication
+message SerialPacket {
+  uint32 packet_id = 1;           // For request/response correlation
+  oneof payload {
+    ToDevice to_device = 2;       // Host -> Device commands
+    FromDevice from_device = 3;   // Device -> Host responses/events
+  }
+}
+
+// Commands from host to device
+message ToDevice {
+  oneof command {
+    // Information queries
+    GetInfoRequest get_info = 1;
+    GetGPSRequest get_gps = 2;
+    GetNeighborsRequest get_neighbors = 3;
+    GetRoutesRequest get_routes = 4;
+    GetRosterRequest get_roster = 5;
+    GetStatsRequest get_stats = 6;
+
+    // Configuration
+    SetGPSRequest set_gps = 10;
+    SetNodeIDRequest set_node_id = 11;
+
+    // Actions
+    SendMessageRequest send_message = 20;
+    SendGPSRequest send_gps = 21;
+    SendEmergencyRequest send_emergency = 22;
+    DiscoverRequest discover = 23;
+    JoinRequest join = 24;
+    PingRequest ping = 25;
+  }
+}
+
+// Responses and events from device to host
+message FromDevice {
+  oneof payload {
+    // Responses to queries
+    GetInfoResponse info = 1;
+    GetGPSResponse gps = 2;
+    GetNeighborsResponse neighbors = 3;
+    GetRoutesResponse routes = 4;
+    GetRosterResponse roster = 5;
+    GetStatsResponse stats = 6;
+
+    // Action results
+    CommandResult result = 10;
+
+    // Async events
+    MessageReceivedEvent message_received = 20;
+    GPSReceivedEvent gps_received = 21;
+    NeighborChangedEvent neighbor_changed = 22;
+    EmergencyReceivedEvent emergency_received = 23;
+    LogEvent log = 24;
+  }
+  uint32 request_id = 100;  // Matches packet_id of request (0 for events)
+}
+
+// ================================================================
+// Request Messages
+// ================================================================
+
+message GetInfoRequest {}
+message GetGPSRequest {}
+message GetNeighborsRequest {}
+message GetRoutesRequest {}
+message GetRosterRequest {}
+message GetStatsRequest {}
+
+message SetGPSRequest {
+  GPSCoordinate position = 1;  // Reuse common.proto GPSCoordinate
+  bool use_static = 2;         // Use as static position
+}
+
+message SetNodeIDRequest {
+  string node_id = 1;
+}
+
+message SendMessageRequest {
+  string destination = 1;  // Node ID or "BROADCAST"
+  string text = 2;
+}
+
+message SendGPSRequest {}
+
+message SendEmergencyRequest {
+  EmergencyType emergency_type = 1;  // Reuse from messages.proto
+  string description = 2;
+}
+
+message DiscoverRequest {}
+message JoinRequest {}
+
+message PingRequest {
+  string destination = 1;
+}
+
+// ================================================================
+// Response Messages - Reuse existing types where possible
+// ================================================================
+
+message GetInfoResponse {
+  NodeInfo node_info = 1;             // Reuse common.proto NodeInfo
+  string firmware_version = 2;
+  string protocol_version = 3;
+  uint64 mesh_version = 4;
+  uint32 neighbor_count = 5;
+  uint32 route_count = 6;
+  uint64 uptime_ms = 7;
+}
+
+message GetGPSResponse {
+  bool has_fix = 1;
+  GPSCoordinate position = 2;         // Reuse common.proto GPSCoordinate  
+  uint32 satellites = 3;
+  float hdop = 4;
+}
+
+message GetNeighborsResponse {
+  repeated NodeInfo neighbors = 1;    // Reuse common.proto NodeInfo
+}
+
+message RouteEntry {
+  string destination = 1;
+  string next_hop = 2;
+  uint32 hop_count = 3;
+  int32 rssi = 4;
+  uint64 last_update = 5;
+}
+
+message GetRoutesResponse {
+  repeated RouteEntry routes = 1;
+}
+
+message RosterEntry {
+  NodeInfo node = 1;                  // Reuse common.proto NodeInfo
+  bool is_self = 2;
+  bool is_active = 3;
+}
+
+message GetRosterResponse {
+  repeated RosterEntry roster = 1;
+}
+
+message GetStatsResponse {
+  uint64 messages_sent = 1;
+  uint64 messages_received = 2;
+  uint64 messages_forwarded = 3;
+  uint64 messages_dropped = 4;
+  uint64 route_discoveries = 5;
+  uint64 route_errors = 6;
+  uint64 mesh_version = 7;
+  uint64 uptime_ms = 8;
+}
+
+message CommandResult {
+  bool success = 1;
+  string error = 2;
+  string message_id = 3;  // For send operations
+}
+
+// ================================================================
+// Event Messages (async notifications from device)
+// ================================================================
+
+message MessageReceivedEvent {
+  string from = 1;
+  string message_id = 2;
+  string text = 3;
+  uint64 timestamp = 4;
+  bool is_broadcast = 5;
+}
+
+message GPSReceivedEvent {
+  string node_id = 1;
+  GPSCoordinate position = 2;         // Reuse common.proto GPSCoordinate
+}
+
+message NeighborChangedEvent {
+  enum ChangeType {
+    JOINED = 0;
+    LEFT = 1;
+    UPDATED = 2;
+  }
+  ChangeType change_type = 1;
+  NodeInfo neighbor = 2;              // Reuse common.proto NodeInfo
+}
+
+message EmergencyReceivedEvent {
+  string from = 1;
+  EmergencyType emergency_type = 2;   // Reuse from messages.proto
+  string description = 3;
+  GPSCoordinate position = 4;         // Reuse common.proto GPSCoordinate
+}
+
+message LogEvent {
+  enum LogLevel {
+    DEBUG = 0;
+    INFO = 1;
+    WARNING = 2;
+    ERROR = 3;
+  }
+  LogLevel level = 1;
+  string message = 2;
+  uint64 timestamp = 3;
+}

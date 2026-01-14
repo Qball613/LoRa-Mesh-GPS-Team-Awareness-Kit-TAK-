@@ -10,7 +10,8 @@
 
 SerialCLI::SerialCLI()
     : routing_engine(nullptr)
-    , gps_manager(nullptr) {
+    , gps_manager(nullptr)
+    , serial_protocol_(Serial) {
 }
 
 bool SerialCLI::init() {
@@ -23,10 +24,12 @@ bool SerialCLI::init() {
 
 void SerialCLI::setRoutingEngine(RoutingEngine* engine) {
     routing_engine = engine;
+    serial_protocol_.setRoutingEngine(engine);
 }
 
 void SerialCLI::setGPSManager(GPSManager* gps) {
     gps_manager = gps;
+    serial_protocol_.setGPSManager(gps);
 }
 
 void SerialCLI::printWelcome() {
@@ -78,8 +81,17 @@ void SerialCLI::printHelp() {
 }
 
 void SerialCLI::process() {
+    // Process SLIP-framed protobuf commands first
+    serial_protocol_.update();
+    
+    // Then handle text-based CLI
     while (Serial.available() > 0) {
         char c = Serial.read();
+        
+        // If we see a SLIP END marker, skip it (handled by serial_protocol_)
+        if (c == 0xC0) {
+            continue;
+        }
 
         if (c == '\n' || c == '\r') {
             if (command_buffer.length() > 0) {
@@ -106,6 +118,10 @@ void SerialCLI::processCommand(const String& cmd) {
         return;
     }
 
+    // SLIP frames (starting with 0xC0) are handled by serial_protocol_.update()
+    // This function only handles human-readable CLI commands
+
+    // Human-readable CLI
     Serial.println(String("> ") + trimmed);
 
     // Parse command and arguments
