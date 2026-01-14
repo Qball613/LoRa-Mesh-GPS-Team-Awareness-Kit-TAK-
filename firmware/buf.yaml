@@ -1,5 +1,11 @@
 version: v1
 name: buf.build/qballq/tacprotobuf
+build:
+  excludes:
+    - .pio
+    - lib
+    - test
+    - variants
 breaking:
   use:
     - FILE
