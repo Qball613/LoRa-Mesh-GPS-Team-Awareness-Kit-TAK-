@@ -352,7 +352,6 @@ Total neighbors: 0
 ```
 
 - Check LoRa frequency (must match all nodes)
-- Verify HMAC keys match on all nodes
 - Increase TX power or reduce distance
 - Check `show_stats` for RX errors
 
