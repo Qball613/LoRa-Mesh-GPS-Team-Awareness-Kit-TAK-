@@ -37,6 +37,7 @@ lora_mesh.v1.SyncTextMessage.source_id max_size:16
 lora_mesh.v1.SyncTextMessage.text max_size:128
 lora_mesh.v1.ContentSyncPayload.positions max_count:10
 lora_mesh.v1.ContentSyncPayload.messages max_count:5
+lora_mesh.v1.ContentSyncPayload.roster max_count:16 max_size:16
 
 # Emergency message limits
 lora_mesh.v1.EmergencyPayload.description max_size:128

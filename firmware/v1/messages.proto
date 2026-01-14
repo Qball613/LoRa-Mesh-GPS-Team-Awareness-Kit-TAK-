@@ -91,6 +91,7 @@ message ContentSyncPayload {
   uint64 mesh_version = 1;             // Sender's mesh version
   repeated SyncPosition positions = 2; // GPS positions to sync
   repeated SyncTextMessage messages = 3; // Text messages to sync
+  repeated string roster = 4;          // Known active node IDs (for nodes without GPS)
 }
 
 // Hello message for neighbor discovery

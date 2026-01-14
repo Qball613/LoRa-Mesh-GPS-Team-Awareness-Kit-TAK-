@@ -1,16 +1,63 @@
 # LoRa Mesh GPS TAK Firmware
 
-ESP32-S3 firmware for the LoRa Mesh GPS Team Awareness Kit. Implements AODV routing protocol, HMAC-SHA256 message authentication, and GPS position sharing over LoRa mesh networks.
+ESP32-S3 firmware for the LoRa Mesh GPS Team Awareness Kit. Implements AODV routing protocol, AES-256-GCM authenticated encryption, and GPS position sharing over LoRa mesh networks.
 
 ## Features
 
 - **AODV Routing Protocol**: On-demand route discovery with multi-hop forwarding
-- **HMAC-SHA256 Security**: Message signing and verification using ESP32-S3 crypto accelerator
+- **AES-256-GCM Encryption**: Full message confidentiality with authenticated encryption
 - **GPS Management**: Hardware GPS, static coordinates, or manual positioning
 - **Text Messaging**: Unicast and broadcast messaging across the mesh
 - **Serial CLI**: Command-line interface for testing and control
-- **Protocol Buffers**: Efficient message serialization (placeholder implementation)
+- **Protocol Buffers**: Efficient message serialization with nanopb
 - **Multi-Board Support**: Unified codebase for LilyGO T3S3 and T-Deck devices
+- **Self-Healing Mesh Sync**: Version-tracked differential synchronization
+- **GPS-Less Node Support**: Roster sync for nodes without GPS (indoor use)
+
+## Mesh Synchronization
+
+The mesh implements a self-healing synchronization protocol to ensure all nodes have consistent state:
+
+### Version Tracking
+
+- Each node maintains a `mesh_version` counter
+- Version increments ONLY when node contributes NEW data:
+  - Sending GPS position update
+  - Sending text message
+  - Discovering multi-hop route (2+ hops)
+- Version does NOT increment for:
+  - Hearing a neighbor's HELLO (prevents flood when many nodes hear same new node)
+  - Adding 1-hop direct route (same reason)
+
+### Join Protocol
+
+1. **New node broadcasts HELLO** with mesh_version=0
+2. **All neighbors add it locally** (no version increment, no flood)
+3. **Best RSSI neighbor responds** with neighbor update (local topology)
+4. **Edge responder also responds** with distant nodes (network extent)
+5. **Edge responder broadcasts LSA** (Link State Advertisement) with TTL=3
+6. **ContentSync follows** with positions, messages, and roster
+
+### Roster Support (GPS-Less Nodes)
+
+Nodes without GPS are still visible in team awareness:
+- ContentSync includes `roster[]` field with active node IDs lacking GPS
+- GPS-less nodes appear in team roster, just without map position
+- AODV routing works without GPS (routes by node ID, not location)
+
+### Differential Sync
+
+When a node detects it's behind (incoming `mesh_version` > local):
+
+1. **Request sync** from the ahead node (rate limited: max 1 per 60s per peer)
+2. **Responder sends ContentSync** with positions, messages, roster
+3. **Receiver updates** neighbor table and adopts mesh_version
+
+### Flood Prevention
+
+- **Designated responders only**: Best RSSI + edge node respond to JOIN
+- **Rate limiting**: ContentSync push max 1 per 30s per peer
+- **Empty packet prevention**: Skip sending if nothing useful to share
 
 ## Hardware Support
 
@@ -237,25 +284,42 @@ Edit `include/config.h` to customize:
 
 ## Security
 
-### HMAC Key Management
+The firmware uses AES-256-GCM authenticated encryption for full message confidentiality and integrity.
+
+### Encryption Details
+
+- **Algorithm**: AES-256-GCM (Galois/Counter Mode)
+- **Key Size**: 256 bits (32 bytes)
+- **Nonce Size**: 96 bits (12 bytes, randomly generated per message)
+- **Auth Tag Size**: 128 bits (16 bytes)
+- **Hardware Acceleration**: Uses ESP32-S3 crypto accelerator
+
+### Wire Format
+
+Each encrypted LoRa packet has the following structure:
+
+```text
+[12-byte nonce][encrypted protobuf payload][16-byte GCM auth tag]
+```
+
+### Key Management
 
 1. **Generate Key on First Node**:
 
    ```text
    > generate_key
-   OK: New HMAC key generated
-   HMAC Key (HEX): 1A2B3C4D5E6F...
+   OK: New encryption key generated
+   Key (HEX): 1A2B3C4D5E6F...
    ```
 
 2. **Copy Key to All Nodes**:
-   - All nodes in the mesh MUST share the same HMAC key
+   - All nodes in the mesh MUST share the same 256-bit key
    - Key is stored in NVS flash (persists across reboots)
-   - Messages with invalid signatures are dropped
+   - Messages with invalid GCM tags are silently dropped
 
 3. **Replay Protection**:
-   - Sequence numbers prevent message replay
-   - Timestamp validation (60-second tolerance)
-   - Per-node sequence tracking
+   - Message IDs tracked for 5 minutes (100 message limit)
+   - Duplicate messages with same ID are dropped
 
 ## Troubleshooting
 
@@ -299,16 +363,25 @@ Total neighbors: 0
 - Monitor logs for "Message forwarded"
 - Verify intermediate node is powered on
 
+## Message Types
+
+| Type | Name | Description |
+|------|------|-------------|
+| 0 | UNSPECIFIED | Invalid/unset message type |
+| 1 | GPS_UPDATE | GPS position update |
+| 2 | TEXT_MESSAGE | User text message |
+| 3 | HELLO | Periodic beacon with node info |
+| 5 | ACKNOWLEDGMENT | Message acknowledgment |
+| 6 | EMERGENCY | Emergency alert |
+| 7 | NETWORK_DISCOVERY | Neighbor/topology sharing |
+| 8 | CONTENT_SYNC | Bundled positions + messages + roster |
+| 10 | ROUTE_REQUEST | AODV route discovery |
+| 11 | ROUTE_REPLY | AODV route response |
+| 12 | ROUTE_ERROR | Link failure notification |
+| 13 | LINK_STATE_ADVERTISEMENT | Proactive topology update |
+| 30 | FRAGMENT | Fragmented large message part |
+
 ## Next Steps
-
-### TODO: Protocol Buffer Integration
-
-The current implementation uses placeholder binary serialization. To integrate actual nanopb-generated Protocol Buffers:
-
-1. Copy generated `.pb.h` and `.pb.c` files from `../lora_mesh/v1/` to `lib/nanopb/`
-2. Update `#include` statements in `protobuf_handler.h`
-3. Replace encode/decode functions with nanopb API calls
-4. Test with real protobuf messages
 
 ### TODO: Python Backend Integration
 

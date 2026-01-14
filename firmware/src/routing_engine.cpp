@@ -8,6 +8,7 @@
 #include "gps_manager.h"
 #include <cstring>
 #include <algorithm>
+#include <set>
 
 // Rate limiting for content sync pushes (to avoid flooding on every HELLO)
 static std::map<String, uint64_t> last_content_sync_push;
@@ -541,11 +542,13 @@ void RoutingEngine::processHello(const LoRaMessage& msg, int8_t rssi) {
     neighbor.is_active = true;
     state_dirty = true;  // Mark for persistence
 
-    // Increment mesh version when we discover a new neighbor
+    // NOTE: We do NOT increment mesh_version when discovering a neighbor via HELLO
+    // Reason: If 5 nodes hear a new node's HELLO, all 5 would increment and flood the network
+    // Version only increments when we generate NEW content (GPS, messages) or discover multi-hop routes
+    // The designated responders (best RSSI + edge) will handle onboarding the new node
     if (is_new_neighbor) {
-        incrementMeshVersion();
-        LOG_I("New neighbor discovered: %s (mesh_version now %llu)",
-              node_id.c_str(), mesh_version);
+        LOG_I("New neighbor discovered: %s (their v=%llu, our v=%llu)",
+              node_id.c_str(), hello.mesh_version, mesh_version);
     }
 
     // Copy position if present
@@ -829,8 +832,31 @@ void RoutingEngine::sendContentSync(const String& target_id, uint64_t neighbor_m
         }
     }
 
-    LOG_I("ContentSync payload: %d positions, %d messages",
-          sync.positions_count, sync.messages_count);
+    // 4. Add roster - active nodes that DON'T have GPS positions (already included above)
+    // This ensures GPS-less nodes still appear in team roster
+    std::set<String> nodes_with_positions;
+    nodes_with_positions.insert(my_node_id);  // We're in positions if we have GPS
+    for (size_t i = 0; i < sync.positions_count; i++) {
+        nodes_with_positions.insert(sync.positions[i].node_id);
+    }
+
+    // Add active neighbors without GPS to roster
+    for (const auto& pair : neighbor_table) {
+        if (sync.roster_count >= 16) break;
+        if (pair.second.is_active && nodes_with_positions.find(pair.first) == nodes_with_positions.end()) {
+            ProtobufHandler::copyString(sync.roster[sync.roster_count], 16, pair.first);
+            sync.roster_count++;
+        }
+    }
+
+    // Add ourselves to roster if we don't have GPS
+    if (!hasValidPosition() && sync.roster_count < 16) {
+        ProtobufHandler::copyString(sync.roster[sync.roster_count], 16, my_node_id);
+        sync.roster_count++;
+    }
+
+    LOG_I("ContentSync payload: %d positions, %d messages, %d roster entries",
+          sync.positions_count, sync.messages_count, sync.roster_count);
 
     // Encode the sync payload
     uint8_t payload_buf[1024];  // Large enough for full sync
@@ -864,8 +890,8 @@ void RoutingEngine::processContentSync(const LoRaMessage& msg, int8_t rssi) {
         return;
     }
 
-    LOG_I("ContentSync from %s: %d positions, %d messages (mesh_v=%llu)",
-          msg.source_id, sync.positions_count, sync.messages_count, sync.mesh_version);
+    LOG_I("ContentSync from %s: %d positions, %d messages, %d roster (mesh_v=%llu)",
+          msg.source_id, sync.positions_count, sync.messages_count, sync.roster_count, sync.mesh_version);
 
     // Process positions - update neighbor table with received GPS data
     for (size_t i = 0; i < sync.positions_count; i++) {
@@ -924,6 +950,26 @@ void RoutingEngine::processContentSync(const LoRaMessage& msg, int8_t rssi) {
             LOG_D("Delivered synced message from %s", text.source_id);
         }
     }
+
+    // Process roster - add GPS-less nodes to our known roster
+    for (size_t i = 0; i < sync.roster_count; i++) {
+        String node_id = sync.roster[i];
+
+        // Add to neighbor table as inactive if we don't know them
+        if (neighbor_table.find(node_id) == neighbor_table.end()) {
+            NeighborEntry new_neighbor;
+            new_neighbor.node_id = node_id;
+            new_neighbor.is_active = false;  // We didn't hear them directly
+            new_neighbor.last_rssi = -100;   // Unknown
+            new_neighbor.last_seen_time = getCurrentTime();
+            memset(&new_neighbor.last_position, 0, sizeof(new_neighbor.last_position));  // No GPS
+            neighbor_table[node_id] = new_neighbor;
+            LOG_D("Learned about GPS-less node %s from roster sync", node_id.c_str());
+        }
+    }
+
+    LOG_I("ContentSync processed: %d positions, %d messages, %d roster",
+          sync.positions_count, sync.messages_count, sync.roster_count);
 
     // Update mesh version if sender is ahead
     if (sync.mesh_version > mesh_version) {
@@ -1607,13 +1653,19 @@ void RoutingEngine::updateRoute(const String& destination_id, const String& next
     route.rssi = rssi;
     route.is_valid = true;
 
-    // Increment mesh version when topology changes (new routes or better paths)
-    if (is_new_route || is_better_route) {
+    // Only increment mesh version for MULTI-HOP routes (new topology we discovered)
+    // 1-hop routes are just direct neighbors - if we incremented for those,
+    // every node hearing a new neighbor would increment and flood the network
+    if ((is_new_route || is_better_route) && hop_count > 1) {
         incrementMeshVersion();
         state_dirty = true;
         LOG_I("Topology changed: %s route to %s via %s (%d hops)",
               is_new_route ? "new" : "better", destination_id.c_str(),
               next_hop.c_str(), hop_count);
+    } else if (is_new_route || is_better_route) {
+        state_dirty = true;
+        LOG_D("Direct route added: %s via %s (1 hop, no version increment)",
+              destination_id.c_str(), next_hop.c_str());
     } else {
         LOG_D("Route refreshed: dest=%s, next_hop=%s, hops=%d",
               destination_id.c_str(), next_hop.c_str(), hop_count);
