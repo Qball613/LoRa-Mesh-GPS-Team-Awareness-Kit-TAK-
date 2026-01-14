@@ -2,13 +2,13 @@
 
 ---
 
-## ðŸš€ Start Here: What Is This?
+## Start Here: What Is This?
 
 A simple, secure, and robust way for your team to share live GPS locationsâ€”no cell towers, no Wi-Fi, just small radios and a map! Designed for field teams (airsoft, SAR, outdoor evenThis section explains our comprehensive routing system that combines multiple protocols for optimal performance in diverse LoRa mesh scenarios. The system has been designed to handle high mobility, varying link quality, energy constraints, and network partitions.s, etc.) who need to know where everyone is, even in remote areas.
 
 ---
 
-## ðŸ—ºï¸ How It Works (In Plain English)
+## How It Works (In Plain English)
 
 - Each team member carries a small device (ESP32 + LoRa radio + GPS module).
 - The device gets your GPS position and sends it out over the air.
@@ -17,7 +17,7 @@ A simple, secure, and robust way for your team to share live GPS locationsâ€�
 
 ---
 
-## ðŸŒŸ Key Features
+## Key Features
 
 - **Live Team Map:** See where everyone is, in real time.
 - **No Infrastructure Needed:** Works anywhereâ€”forests, mountains, urban, or rural.
@@ -27,7 +27,7 @@ A simple, secure, and robust way for your team to share live GPS locationsâ€�
 
 ---
 
-## ðŸ Quick Start: Building Your Mesh
+## Quick Start: Building Your Mesh
 
 1. **Assemble Hardware:** ESP32 + LoRa + GPS for each teammate.
 2. **Review Protocol Definitions:** Check the `/lora_mesh/v1/` folder for Protocol Buffer message definitions.
@@ -37,7 +37,7 @@ A simple, secure, and robust way for your team to share live GPS locationsâ€�
 
 ---
 
-## ðŸ› ï¸ Actionable Implementation Plan
+## Actionable Implementation Plan
 
 Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, testable sequence. Each phase builds on the last, ensuring a robust and maintainable system.
 
@@ -60,7 +60,6 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
 
 ### Phase 3: Cryptographic Signing & Verification
 
-- Implement HMAC or ECC signing for all messages (see 'Cryptography' section).
 - Add signature verification on receive; drop invalid messages.
 - Test with mismatched keys to ensure security enforcement.
 
@@ -108,23 +107,23 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
 
 ---
 
-## ðŸ” How Do I See the Map?
+##  How Do I See the Map?
 
 - Connect your device to a phone, tablet, or small screen.
-- Use a custom app, TAK/ATAK, or even a web map to view everyoneâ€™s positions.
+- Use a custom app, TAK/ATAK, or even a web map to view everyone's positions.
 - Alerts can warn you if someone goes out of bounds or loses contact.
 
 ---
 
-## ðŸ”’ How Is It Secure?
+##  How Is It Secure?
 
 - Only devices with the right digital keys can join and share locations.
-- All messages are signed, so you know theyâ€™re real.
+- All messages are signed, so you know they're real.
 - No data leaves the meshâ€”no cloud, no tracking, just your team.
 
 ---
 
-## ðŸ¤” Why Use This?
+##  Why Use This?
 
 - Stay safe and coordinated in the field.
 - No monthly fees or cell coverage required.
@@ -132,23 +131,20 @@ Follow these steps to build your LoRa Mesh GPS Team Awareness Kit in a logical, 
 
 ---
 
-## ðŸ“‹ Current Implementation Status
+## Current Implementation Status
 
-### âœ… What's Implemented
+###  What's Implemented
 
 - **Protocol Buffer Definitions**: Complete message format definitions in `/lora_mesh/v1/`
 - **ESP32 Firmware**: Working C++ implementation in `/firmware/` directory
   - AODV routing protocol with RREQ/RREP/RERR handling
-  - HMAC-SHA256 message authentication and replay protection
   - GPS management (hardware/static/manual modes)
   - LoRa radio interface (SX1262 via RadioLib)
   - Serial command-line interface for testing
   - Multi-board support (LilyGO T3S3, T-Deck)
-- **Python Simulation**: Working network simulator in `/routing_simulation/`
 
-### ðŸ”§ What's Next
+###  What's Next
 
-- **Protocol Buffer Integration**: Replace placeholder serialization with actual nanopb
 - **Field Testing**: Deploy 6-radio mesh for real-world validation
 - **TFT Display UI**: Implement roster and messaging display
 - **Python Backend**: Live visualization and monitoring
@@ -555,7 +551,7 @@ A wants to send to D:
 2. D â†’ (RREP) â†’ C â†’ (RREP) â†’ B â†’ (RREP) â†’ A
 3. A â†’ (DATA) â†’ B â†’ C â†’ D
 
-````
+
 
 This approach ensures reliable, efficient routing for GPS and team data, even as the network grows or changes in the field.
 
