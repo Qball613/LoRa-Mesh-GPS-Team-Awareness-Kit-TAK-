@@ -113,6 +113,7 @@ void RoutingEngine::requestStateSync(const String& target_node) {
     if (transmit_callback) {
         LoRaMessage msg = createMessage(target_node, MESSAGE_TYPE_NETWORK_DISCOVERY,
                                         payload.data(), payload.size(), PRIORITY_ROUTINE);
+        stats.messages_sent++;
         transmit_callback(msg);
         LOG_I("State sync request sent to %s", target_node.c_str());
     }
@@ -382,6 +383,7 @@ void RoutingEngine::sendHelloBeacon() {
         LoRaMessage msg = createMessage("", MESSAGE_TYPE_HELLO, payload_buf, payload_len, PRIORITY_ROUTINE);
 
         if (transmit_callback) {
+            stats.messages_sent++;
             transmit_callback(msg);
             LOG_D("HELLO beacon sent (seq=%u, size=%u, hasGPS=%d)",
                   hello.hello_sequence, payload_len, hello.node_info.has_position);
@@ -446,6 +448,7 @@ void RoutingEngine::sendNetworkDiscovery() {
                                         payload_buf, stream.bytes_written, PRIORITY_TACTICAL);
 
         if (transmit_callback) {
+            stats.messages_sent++;
             transmit_callback(msg);
             LOG_I("Network discovery sent (%d known neighbors)", discovery.discovered_nodes_count);
         }
@@ -743,6 +746,7 @@ void RoutingEngine::sendNeighborUpdate(const String& target_id, bool is_edge_res
         LoRaMessage msg = createMessage(target_id, MESSAGE_TYPE_NETWORK_DISCOVERY,
                                         payload_buf, stream.bytes_written, PRIORITY_ROUTINE);
         if (transmit_callback) {
+            stats.messages_sent++;
             transmit_callback(msg);
             LOG_I("Sent neighbor update to %s (%d nodes, %s)",
                   target_id.c_str(), response.discovered_nodes_count,
@@ -876,6 +880,7 @@ void RoutingEngine::sendContentSync(const String& target_id, uint64_t neighbor_m
         LOG_I("ContentSync %d bytes - single packet", payload.size());
         LoRaMessage msg = createMessage(target_id, lora_mesh_v1_MessageType_MESSAGE_TYPE_CONTENT_SYNC,
                                         payload_buf, stream.bytes_written, PRIORITY_ROUTINE);
+        stats.messages_sent++;
         transmit_callback(msg);
     }
 }
@@ -1034,6 +1039,7 @@ void RoutingEngine::broadcastNewcomerAnnouncement(const String& newcomer_id) {
         msg.ttl = 3;  // Limit propagation depth
 
         if (transmit_callback) {
+            stats.messages_sent++;
             transmit_callback(msg);
             LOG_I("Broadcasted LSA with newcomer %s (%d neighbors, TTL=3)",
                   newcomer_id.c_str(), lsa.neighbors_count);
@@ -1165,6 +1171,7 @@ void RoutingEngine::sendRouteRequest(const String& destination_id) {
         LoRaMessage msg = createMessage("", MESSAGE_TYPE_ROUTE_REQUEST, payload_buf, payload_len, PRIORITY_TACTICAL);
 
         if (transmit_callback) {
+            stats.messages_sent++;
             transmit_callback(msg);
             LOG_I("RREQ sent for destination: %s", destination_id.c_str());
         }
@@ -1266,6 +1273,7 @@ void RoutingEngine::sendRouteReply(const String& originator_id, const String& de
         LoRaMessage msg = createMessage(originator_id, MESSAGE_TYPE_ROUTE_REPLY, payload_buf, payload_len, PRIORITY_TACTICAL);
 
         if (transmit_callback) {
+            stats.messages_sent++;
             transmit_callback(msg);
             LOG_I("RREP sent to %s for dest %s", originator_id.c_str(), destination_id.c_str());
         }
@@ -1376,11 +1384,13 @@ void RoutingEngine::sendRouteError(const String& unreachable_dest) {
         LoRaMessage msg = createMessage("", MESSAGE_TYPE_ROUTE_ERROR, payload_buf, payload_len, PRIORITY_TACTICAL);
 
         // Broadcast RERR
-        if (transmit_callback && transmit_callback(msg)) {
+        if (transmit_callback) {
             stats.rerr_sent++;
-            LOG_I("RERR broadcasted for: %s", unreachable_dest.c_str());
-        } else {
-            LOG_E("Failed to broadcast RERR");
+            if (transmit_callback(msg)) {
+                LOG_I("RERR broadcasted for: %s", unreachable_dest.c_str());
+            } else {
+                LOG_E("Failed to broadcast RERR");
+            }
         }
     }
 }

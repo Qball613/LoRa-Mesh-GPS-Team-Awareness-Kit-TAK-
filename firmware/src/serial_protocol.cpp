@@ -166,13 +166,16 @@ void SerialProtocol::processPacket(const uint8_t* data, size_t len) {
             case lora_mesh_v1_ToDevice_send_gps_tag:
                 handleSendGPS(request_id);
                 break;
+            case lora_mesh_v1_ToDevice_send_message_tag:
+                handleSendMessage(request_id, &cmd->command.send_message);
+                break;
             case lora_mesh_v1_ToDevice_discover_tag:
                 handleDiscover(request_id);
                 break;
             case lora_mesh_v1_ToDevice_join_tag:
                 handleJoin(request_id);
                 break;
-            // TODO: Add remaining command handlers
+            // TODO: Add remaining command handlers (send_emergency, ping, set_gps, set_node_id)
             default:
                 sendResult(request_id, false, "Unknown command");
                 break;
@@ -507,9 +510,50 @@ void SerialProtocol::handleSetGPS(uint32_t request_id, const uint8_t* data, size
     sendResult(request_id, false, "Not implemented");
 }
 
-void SerialProtocol::handleSendMessage(uint32_t request_id, const uint8_t* data, size_t len) {
-    // TODO: Decode SendMessageRequest and send
-    sendResult(request_id, false, "Not implemented");
+void SerialProtocol::handleSendMessage(uint32_t request_id, const lora_mesh_v1_SendMessageRequest* req) {
+    if (!routing_) {
+        sendResult(request_id, false, "Routing engine not available");
+        return;
+    }
+    
+    // Extract destination and text from the request
+    String destination = String(req->destination);
+    String text = String(req->text);
+    
+    if (text.length() == 0) {
+        sendResult(request_id, false, "Empty message");
+        return;
+    }
+    
+    // Create TextMessagePayload
+    lora_mesh_v1_TextMessagePayload txt = lora_mesh_v1_TextMessagePayload_init_zero;
+    ProtobufHandler::copyString(txt.text, sizeof(txt.text), text);
+    ProtobufHandler::copyString(txt.sender_callsign, sizeof(txt.sender_callsign), NodeID::getNodeID());
+    txt.priority = PRIORITY_ROUTINE;
+    
+    // Encode payload
+    uint8_t payload_buf[256];
+    size_t payload_len = ProtobufHandler::encodePayload(txt, payload_buf, sizeof(payload_buf));
+    
+    if (payload_len == 0) {
+        sendResult(request_id, false, "Failed to encode message");
+        return;
+    }
+    
+    // Send via routing engine
+    std::vector<uint8_t> payload(payload_buf, payload_buf + payload_len);
+    
+    // Use BROADCAST if destination is empty or "BROADCAST"
+    String dest = destination;
+    if (dest.length() == 0 || dest.equalsIgnoreCase("BROADCAST")) {
+        dest = "BROADCAST";
+    }
+    
+    if (routing_->sendMessage(dest, MESSAGE_TYPE_TEXT_MESSAGE, payload, PRIORITY_ROUTINE)) {
+        sendResult(request_id, true);
+    } else {
+        sendResult(request_id, false, "Failed to send message");
+    }
 }
 
 void SerialProtocol::handleSendEmergency(uint32_t request_id, const uint8_t* data, size_t len) {

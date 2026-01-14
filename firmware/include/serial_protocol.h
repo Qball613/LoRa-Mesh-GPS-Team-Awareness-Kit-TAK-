@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <functional>
+#include "v1/serial.pb.h"
 
 // Forward declarations
 class RoutingEngine;
@@ -146,7 +147,7 @@ private:
     void handleGetRoster(uint32_t request_id);
     void handleGetStats(uint32_t request_id);
     void handleSetGPS(uint32_t request_id, const uint8_t* data, size_t len);
-    void handleSendMessage(uint32_t request_id, const uint8_t* data, size_t len);
+    void handleSendMessage(uint32_t request_id, const lora_mesh_v1_SendMessageRequest* req);
     void handleSendGPS(uint32_t request_id);
     void handleSendEmergency(uint32_t request_id, const uint8_t* data, size_t len);
     void handleDiscover(uint32_t request_id);
